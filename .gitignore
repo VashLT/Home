@@ -1,3 +1,5 @@
 #ignore .vscode files
 
+*.exe
 .vscode
+__pycache__
