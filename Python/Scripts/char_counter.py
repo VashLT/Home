@@ -26,24 +26,26 @@ def char_counter(message, blanks = True):
     return chars
 
 
-
 screen = Screen('Char Counter')
 screen.display()
 if len(sys.argv) < 2:
     print("Usage: (char 1) print the number of times a character appear")
     print("       (char 2) print the number of times a character appear (without blanks)")
     print("       (char 3) print only the length")
-    print(sys.argv)
     sys.exit()
 
 arg = sys.argv[1]
 try:
     arg = int(arg)
     blanks = True
-    print(f"There are {len(pyperclip.paste())} words.")
+    string = pyperclip.paste().replace(' ','')
     if arg == 3:
+        print(f"There are {len(string)} words.")
         sys.exit()
+    elif arg == 1:
+        print(f"There are {len(pyperclip.paste())} words.")
     elif arg == 2:
+        print(f"There are {len(string)} words.")
         blanks = False
     chars = char_counter(str(pyperclip.paste()), blanks)
     for char in chars.keys():

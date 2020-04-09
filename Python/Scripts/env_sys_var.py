@@ -32,11 +32,3 @@ else:
 
     print("The path isn't added.")
     
-
-
-
-
-
-
-
-
