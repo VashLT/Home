@@ -7,8 +7,6 @@ from Display_Screen.Screen import Screen
 #! Python 3
 # Task manager v1.0
 
-#TODO Fix the task list reader, so the program will read the previous file data stored.
-
 class Node():
     def __init__(self, task, date):
         self.index = 0
@@ -50,15 +48,12 @@ class Task_list():
             return
 
         traveller = self.head
-
-        
+   
         while traveller is not None:
             task_parse = f"[%s] {traveller.task}" % str(traveller.index)
             info_date = f'added on {traveller.date}'.rjust(100-len(task_parse))
             print(task_parse, info_date)
             traveller = traveller.next
-
-
 
     def query_task(self,node = None, index= -1):
         if self.head is not None:
@@ -75,8 +70,8 @@ class Task_list():
                             return None
                         if traveller.next == node:
                             return traveller #return the previous task to the task asked
-
                         traveller = traveller.next
+
                     except TypeError:
                         print("[INFO] The task couldn't be deleted.")
             #non-negative index
@@ -85,7 +80,6 @@ class Task_list():
                     return self.head
                 while traveller is not None:
                     try:
-                        print(f'{traveller.task}')
                         if traveller.next is None:
                             print("[INFO] The task to delete isn't in the list.")
                             return None
@@ -103,9 +97,11 @@ class Task_list():
                 tail = self.get_tail()
                 tail.next = node
                 node.index = tail.index + 1
+            #add the first task to the task list
             else:
                 node.index = 1
                 self.head = node
+                self.update_file() #update the shelve dictionary
             print("[INFO] The task was added succesfully.")
         except TypeError:
             print("[INFO] The task wasn't added succesfully.")
@@ -130,34 +126,41 @@ class Task_list():
             return
 
         del task_to_delete
+
         self.get_tail() #update the indexes
+        self.update_file() #update the shelve file
 
         print("[INFO] The task was removed succesfully.")
+    
+    def update_file(self):
+        path = os.path.join(os.path.expanduser('~'),'jose2','Documents','Tasks')
+        with shelve.open(path) as sfile:
+            sfile["Task list"] = self.head
+            sfile.close()
     
 
 
 def store_tasks(task_list):
     try:
-        with shelve.open('Tasks') as task_file:
-            
-            if len(task_file) > 0:
-                #print the store tasks and fill the task_list instance
-                task_store = task_file.values()[0]
-                if task_store.head is not None:
-                    aux = task_store.head
-                    while aux is not None:
-                        task_parse = f"[%s] {aux.task}" % str(aux.index + 1)
-                        info_date = f'added on {aux.date}'.rjust(100-len(task_parse))
-                        print(task_parse, info_date)
-                        aux = aux.next
-                    task_list = task_store
+        path = os.path.join(os.path.expanduser('~'),'jose2','Documents','Tasks')
+        with shelve.open(path) as task_file:
+            first_task = task_file['Task list']
 
-                else:
-                    print("[INFO] No previous tasks availables.")
+            if  first_task is not None:
+                #print the store tasks and fill the task_list instance
+                temp = first_task
+                
+                while temp is not None:
+                    task_parse = f"[%s] {temp.task}" % str(temp.index)
+                    info_date = f'added on {temp.date}'.rjust(100-len(task_parse))
+                    print(task_parse, info_date)
+                    temp = temp.next
+                #assign the stored node to the "current" task list
+                task_list.head = first_task
             else:
                 print("[INFO] No previous tasks availables.")
-    except:
-        print("[INFO] file couldn't be read.")
+    except KeyError:
+        print("[INFO] File couldn't read, no previous tasks availables.")
 
 def fill_task():
     try:
@@ -191,9 +194,6 @@ def selector(choose,task_list):
         elif choose ==3:
             task_list.show_task_list()
             time.sleep(1)
-        elif choose ==4:
-            print("Thanks for using the script!")
-            sys.exit()
 
     except ValueError:
         print("A number is expected.")
@@ -223,7 +223,11 @@ while True:
     print('[4] -> Exit.')
     try:
         choose = input('Enter: ')
+        if choose == '4':
+            print("Thanks for using the script!")
+            break
         selector(choose, task_list)
+           
     except ValueError:
         print('A number is expected.')
         
