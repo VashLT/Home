@@ -8,6 +8,7 @@ import google_ss_color
 import sys, os
 from Display_Screen.Screen import Screen
 from datetime import timedelta, datetime
+import pyinputplus as pyip
 #! Python3
 # Workout spreadsheet manager - This script allows fill in data about exercise stuff and info about my weight.
 
@@ -17,10 +18,9 @@ from datetime import timedelta, datetime
 # pylint: disable=too-many-function-args
 
 SPREADSHEET_NAME = "Workout"
-SHEET_NAME = "Marzo"
 
 ss = gs.create_spread_sheet(SPREADSHEET_NAME)
-worksheet = ss.worksheet(SHEET_NAME)
+worksheet = ss.sheet1 #by default sheet number one
 
 def get_spreadsheet_id_from_url(url):
     id_regex = re.compile(r'/spreadsheets/d/([a-zA-Z0-9-_]+)')
@@ -37,7 +37,7 @@ def body_weight_table(start_row,start_col, title):
 
     #create an instance of batch_dealing class
     table = batch_class.batch_dealing(worksheet._properties['sheetId'])
-    
+
     #title cell
 
     table.merge_cells(s_row, s_row, s_col, e_col)
@@ -97,66 +97,73 @@ def parse_date(start_day, single_mode = False):
     
     return dates
 
+def add(row,column,value):
+    cell = worksheet.cell(row,column)
+    cont = 0
+    while cell.value != '':
+        cont += 1
+        cell = worksheet.cell(row + cont,column)
+        if cont > 7:
+            print("[INFO] The column is full.")
+            return
+    worksheet.update_cell(cell.row, cell.col, value)
+    
 
-
-
+#TODO solve problem not found a previous week table in a new sheet and get into an infinity loop.
 def main():
+    global worksheet
     screen = Screen("Workout spreadsheet manager")
     screen.display()
 
-    # if len(sys.argv) < 2:
-    #     print("""Usage: (workout fill)   - Input dialogue to prompt the data to fill
-    #                     (workout create) - Create a body weight table
-    #                     (workout check)  - Print the averague weight of a given week
-    #                     (workout update) - Input dialogue to prompt the data to update
-    #     """)
-    #     sys.quit()
+    options = ["fill", "create", "check", "update","add"]
+    new_state = False
+    if len(sys.argv) < 2 or sys.argv[1] not in options:
+        print("Usage: (workout fill)   - Input dialogue to prompt the data to fill")
+        print(       "(workout add)    - Input dialogue to prompt the data to add")
+        print(       "(workout create) - Create a body weight table")
+        print(       "(workout check)  - Print the averague weight of a given week")
+        print(       "(workout update) - Input dialogue to prompt the data to update")
 
-    choice = input("Enter choice: ")    #sys.argv[1]
+        sys.exit()
+
+    choice = sys.argv[1]
     choice = choice.lower()
 
-    data = ["weight", "body fat %", "calories per day"]
+    try:
+        sheet = input("Enter the name of the sheet: ")
 
-    if choice == 'fill':
-        for index, kind in enumerate(data,1):
-            print(f"[{index}] - > {kind}")
+        sheet = sheet.lower().capitalize()
+        worksheet = ss.worksheet(sheet)
+    except gspread.exceptions.WorksheetNotFound:
+        print("[INFO] The sheet wasn't found.")
         try:
-            choice = int(input("Enter: "))
-            mssg = data[choice-1]
-            if choice == 3:
-                print("Option not available right now.")
-            
-            else:
-                week = int(input("Enter the week: "))
-                print("[INFO] searching the week table...")
-                try:
-                    coord = match_table(week)
-                    print("[INFO] Week table found succesfully.")
-                    stuff = []
-                    while True:
-                        value = float(input(f"Enter the {mssg}: "))
-                        stuff.append(value)
-                        if len(stuff) == 7:
-                            break
-                    if choice == 1:
-                        fill_in(coord[0] + 1, coord[1] + 1,stuff)
-                    else:
-                        fill_in(coord[0] + 1, coord[1] + 2,stuff)
-                    print(f"[INFO] {mssg} data filled succesfully.")
+            ans = pyip.inputYesNo(prompt= "Do you want to create a new sheet? (y/n)",yesVal="y", noVal = "n",limit = 3)
+            if ans == 'n':
+                sys.exit()
+        except pyip.RetryLimitException:
+            print("[INFO] Number attempts exceeded.")
+            sys.exit()
 
-                except:
-                    print("[INFO] Something was wrong, table couldn' be found.")
-        except ValueError:
-            print("A number is expected.")
+        worksheet = ss.add_worksheet(title=sheet, rows ="100", cols="25")
+        new_state = True #when a new sheet is created.
+    except:
+        print("[INFO] Something was wrong.")
     
-    elif choice == 'create':
+    if choice == 'create':
         try:
-            week = int(input("Enter the week number: "))
-            try:
-                prev_table_coord = match_table(week-1)
-            except:
-                print(f"[INFO] Week number wrong. Week {week-1} was not found.")
-            new_coord = [prev_table_coord[0]+ 8 , prev_table_coord[1]]
+            while True:
+                if new_state:
+                    week=1
+                    new_coord = [6,2] #row, column by default in a new sheet    
+                    break
+
+                week = int(input("Enter the week number: "))
+                try:
+                    prev_table_coord = match_table(week-1)
+                    new_coord = [prev_table_coord[0]+ 8 , prev_table_coord[1]]
+                    break
+                except gspread.exceptions.CellNotFound:
+                    print(f"[INFO] Previous week table wasn't found.")
 
             start_row = new_coord[0]
             start_col = new_coord[1]
@@ -165,32 +172,84 @@ def main():
             table = body_weight_table(start_row, start_col, f"Week {week}")
             ss.batch_update(table.get_body())
             print("[INFO] The table was created succesfully.")
+            if not new_state:
+                initial_date = worksheet.cell(start_row-1,start_col).value
+            else:
+                initial_date = input("Enter the initial date (dd/mm/yyy): ")
 
-            initial_date = input("Enter the initial date (dd/mm/yyy): ")
             dates_to_fill = parse_date(initial_date)
 
             print("[INFO] Filling the dates...")
             fill_in(start_row+1, start_col, dates_to_fill)
-            print("[INFO] Dates field filled succesfully.")            
-
+            print("[INFO] Dates field filled succesfully.")
+            sys.exit()            
 
         except ValueError:
             print("[INFO] Table couldn't be created, a number is expected.")
         except:
             print("[INFO] Something was wrong, table incompleted.")
 
-    elif choice == 'check':
+    data = ["weight", "body fat %", "calories per day"]
+
+    for index, kind in enumerate(data,1):
+        print(f"[{index}] - > {kind}")
+    try:
+        choose = int(input("Enter: "))
+        mssg = data[choose-1]
+
+        week = int(input("Enter the week: "))
+        print("[INFO] searching the week table...")
+
         try:
-            coord = match_table(int(input("Enter the week number: ")))
-            row = coord[0] +1
-            col = coord[1] 
-            date= worksheet.cell(row, col).value
-            finish_day = parse_date(date, single_mode = True)
-            prom_weight = worksheet.cell(row , col + 3).value
-            print(f"The prom weight during the week {date}~{finish_day} is {prom_weight} kg")
-        except ValueError:
-            print("[INFO] A number is expected.")
-    else:
-        print("Work in progress :).")
+            coord = match_table(week)
+            print("[INFO] Week table found succesfully.")
+            if choice == "fill":
+                stuff = []
+                while True:
+                    indx=1
+                    value = float(input(f"[{indx}] Enter the {mssg}: "))
+                    if value == '0':
+                        break
+                    stuff.append(value)
+                    indx += 1
+                    if len(stuff) == 7:
+                        break
+                if choice == 1:
+                    fill_in(coord[0] + 1, coord[1] + 1,stuff)
+                else:
+                    fill_in(coord[0] + 1, coord[1] + 2,stuff)
+                print(f"[INFO] {mssg} data filled succesfully.")
+            elif choice == 'check':
+                row = coord[0] +1
+                col = coord[1] 
+                date= worksheet.cell(row, col).value
+                finish_day = parse_date(date, single_mode = True)
+                prom_weight = worksheet.cell(row , col + 3).value
+                print(f"The prom weight during the week {date}~{finish_day} is {prom_weight} kg")
+
+            elif choice == "add":
+                value = float(input(f"Enter the {mssg}: "))
+                if choose == 1:
+                    row = coord[0]+1
+                    col = coord[1]+1
+                elif choose ==2:
+                    row = coord[0]+1
+                    col = coord[1]+2
+                elif choose ==3:
+                    row = coord[0]+1
+                    col = coord[1]+4
+                    table = batch_class.batch_dealing(worksheet._properties['sheetId'])
+                    table.merge_cells(row,row+6,col,col)
+                    ss.batch_update(table.get_body())
+                add(row,col,value)
+                print(f"[INFO] {mssg} added succesfully.")
+
+        except gspread.exceptions.CellNotFound:
+                print(f"[INFO] Previous week table wasn't found.")
+
+    except ValueError:
+        print("A number is expected.")
+    
+    sys.exit()
 
 main()

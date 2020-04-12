@@ -1,4 +1,5 @@
 import gspread
+import os
 from oauth2client.service_account import ServiceAccountCredentials
 
 
@@ -21,6 +22,6 @@ column_type = {
 
 def create_spread_sheet(ss_name):
     scope = ['https://spreadsheets.google.com/feeds','https://www.googleapis.com/auth/drive']
-    credentials = ServiceAccountCredentials.from_json_keyfile_name('workout.json', scope)
+    credentials = ServiceAccountCredentials.from_json_keyfile_name(os.path.join(os.path.expanduser("~"),"jose2","Documents","workout.json"), scope)
     client = gspread.authorize(credentials)
     return client.open(ss_name)
