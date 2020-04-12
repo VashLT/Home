@@ -289,7 +289,7 @@ class batch_dealing():
                     "userEnteredFormat": {
                         "numberFormat": {
                             "type": "NUMBER",
-                            "pattern": "#,##"
+                            "pattern": "#.##"
                         }
                     }
                 },
@@ -312,7 +312,7 @@ class batch_dealing():
                     "userEnteredFormat": {
                         "numberFormat": {
                             "type": "DATE",
-                            "pattern": "dd/mm/yy"
+                            "pattern": "dd/mm/yyyy"
                         }
                     }
                 },
