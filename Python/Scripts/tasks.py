@@ -101,7 +101,8 @@ class Task_list():
             else:
                 node.index = 1
                 self.head = node
-                self.update_file() #update the shelve dictionary
+                
+            self.update_file() #update the shelve dictionary
             print("[INFO] The task was added succesfully.")
         except TypeError:
             print("[INFO] The task wasn't added succesfully.")
