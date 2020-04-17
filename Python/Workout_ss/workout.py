@@ -222,7 +222,7 @@ def main():
                 for index, kind in enumerate(data,1): #shows the categories
                     print(f"[{index}] - > {kind}")
 
-                choose = pyip.inputInt("Enter: ", greaterThan=0, limit = 3)
+                choose = pyip.inputInt("Enter: ", greaterThan=0,max = len(data), limit = 3)
 
                 mssg = data[choose-1]
 
