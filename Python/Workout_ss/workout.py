@@ -131,21 +131,19 @@ def merge(row,col):
     ss.batch_update(table.get_body())
     
 
-#TODO solve problem not found a previous week table in a new sheet and get into an infinity loop.
 def main():
     global worksheet
 
-    screen = Screen("Workout spreadsheet manager")
+    screen = Screen("Workout spreadsheet manager", version= "1.1")
     screen.display()
 
-    options = ["fill", "create", "check", "update","add"]
+    options = ["fill", "create", "check", "add"]
     new_state = False
     if len(sys.argv) < 2 or sys.argv[1] not in options:
         print("Usage: (workout fill)   - Input dialogue to prompt the data to fill")
         print(       "(workout add)    - Input dialogue to prompt the data to add")
         print(       "(workout create) - Create a body weight table")
         print(       "(workout check)  - Print the averague weight of a given week")
-        print(       "(workout update) - Input dialogue to prompt the data to update")
 
         sys.exit()
 
@@ -157,76 +155,89 @@ def main():
 
         sheet = sheet.lower().capitalize()
         worksheet = ss.worksheet(sheet)
+
+        if choice != "create":
+            week = pyip.inputInt("Enter the week number: ",limit = 3)
+            print("[INFO] searching the week table...")
+
+            coord = match_table(week)
+
+            print("[INFO] Week table found succesfully.")
+
     except gspread.exceptions.WorksheetNotFound:
         print("[INFO] The sheet wasn't found.")
-        try:
-            ans = pyip.inputYesNo(prompt= "Do you want to create a new sheet? (y/n)",yesVal="y", noVal = "n",limit = 3)
-            if ans == 'n':
-                sys.exit()
-        except pyip.RetryLimitException:
+        
+        ans = pyip.inputYesNo(prompt= "Do you want to create a new sheet? (y/n)",yesVal="y", noVal = "n",limit = 3)
+        if ans == 'n':
+            sys.exit()
+        worksheet = ss.add_worksheet(title=sheet, rows ="100", cols="25")
+        new_state = True #when a new sheet is created.
+        week = 1
+
+    except pyip.RetryLimitException:
             print("[INFO] Number attempts exceeded.")
             sys.exit()
 
-        worksheet = ss.add_worksheet(title=sheet, rows ="100", cols="25")
-        new_state = True #when a new sheet is created.
+    except gspread.exceptions.CellNotFound:
+                print(f"[INFO] Previous week table wasn't found.")
+                try:
+                    ans = pyip.inputYesNo(prompt= "Do you want to create a new table? (y/n) ",yesVal="y", noVal = "n",limit = 3)
+                    if ans == 'y':
+                        create_table(6,2,"Week 1", new = True)
+                        print("[INFO] The table was created succesfully.")
+
+                except pyip.RetryLimitException:
+                    print("[INFO] Number attempts exceeded.")
+                except:
+                    print("[INFO] Something was wrong, the table couldn't be created.")
     except:
         print("[INFO] Something was wrong.")
     
-    if choice == 'create':
-        try:
-            while True:
+    try:
+        while True:
+            if choice == 'create':
                 if new_state:
-                    week=1
-                    new_coord = [6,2] #row, column by default in a new sheet    
-                    break
-
-                week = int(input("Enter the week number: "))
-                try:
+                    new_coord = [6,2] #row, column by default in a new sheet  
+                    create_table(new_coord[0], new_coord[1],f"Week {week}", new = True)
+                else:
                     prev_table_coord = match_table(week-1)
                     new_coord = [prev_table_coord[0]+ 8 , prev_table_coord[1]]
-                    break
-                except gspread.exceptions.CellNotFound:
-                    print(f"[INFO] Previous week table wasn't found.")
+                    create_table(new_coord[0], new_coord[1],f"Week {week}")
 
-            if new_state:
-                create_table(new_coord[0], new_coord[1],f"Week {week}", new = True)
+                print("[INFO] The table was created succesfully.")      
+
+            elif choice == "check":
+
+                row = coord[0] +1
+                col = coord[1] 
+
+                date= worksheet.cell(row, col).value
+                finish_day = parse_date(date, single_mode = True)
+                prom_weight = worksheet.cell(row , col + 3).value
+                print(f"The prom weight during the week {date}~{finish_day} is {prom_weight} kg")
+            
             else:
-                create_table(new_coord[0], new_coord[1],f"Week {week}")
+                data = ["weight", "body fat %", "calories per day"] #categories to manipulate
+                screen.display()
+                for index, kind in enumerate(data,1): #shows the categories
+                    print(f"[{index}] - > {kind}")
 
-            print("[INFO] The table was created succesfully.")           
+                choose = pyip.inputInt("Enter: ", greaterThan=0, limit = 3)
 
-        except ValueError:
-            print("[INFO] Table couldn't be created, a number is expected.")
-        except KeyboardInterrupt:
-            print("Thanks for using the script!.")
-        except:
-            print("[INFO] Something was wrong, table incompleted.")
+                mssg = data[choose-1]
 
-    else:
-        data = ["weight", "body fat %", "calories per day"]
-        for index, kind in enumerate(data,1):
-            print(f"[{index}] - > {kind}")
-        try:
-            choose = int(input("Enter: "))
-            mssg = data[choose-1]
-
-            week = int(input("Enter the week: "))
-            print("[INFO] searching the week table...")
-
-            try:
-                coord = match_table(week)
-                print("[INFO] Week table found succesfully.")
                 if choice == "fill":
                     stuff = []
                     while True:
                         indx=1
-                        value = float(input(f"[{indx}] Enter the {mssg}: "))
+                        value = pyip.inputFloat(f"[{indx}] Enter the {mssg}: ", limit = 3, min=0)
+
                         if value == 0:
                             break
                         stuff.append(value)
                         indx += 1
                         if len(stuff) == 7:
-                            break
+                            break  
                     if choose == 1:
                         fill_in(coord[0] + 1, coord[1] + 1,stuff)
                     elif choose == 2:
@@ -235,16 +246,9 @@ def main():
                         merge(coord[0]+1, coord[1] + 4)
                         add(coord[0]+1, coord[1] + 4, stuff[0])
                     print(f"[INFO] {mssg} data filled succesfully.")
-                elif choice == 'check':
-                    row = coord[0] +1
-                    col = coord[1] 
-                    date= worksheet.cell(row, col).value
-                    finish_day = parse_date(date, single_mode = True)
-                    prom_weight = worksheet.cell(row , col + 3).value
-                    print(f"The prom weight during the week {date}~{finish_day} is {prom_weight} kg")
 
                 elif choice == "add":
-                    value = float(input(f"Enter the {mssg}: "))
+                    value = pyip.inputFloat(f"Enter the {mssg}: ",limit = 3)
                     if choose == 1:
                         row = coord[0]+1
                         col = coord[1]+1
@@ -258,26 +262,30 @@ def main():
 
                     add(row,col,value)
                     print(f"[INFO] {mssg} added succesfully.")
+                    
+            ans = pyip.inputYesNo(f"Do you want to do anything else? (y/n) ",yesVal="y", noVal="n", limit=3)
+            if ans != "y":
+                break
+            if "Exit" not in options:
+                options.append("Exit")
 
-            except gspread.exceptions.CellNotFound:
-                    print(f"[INFO] Previous week table wasn't found.")
-                    try:
-                        ans = pyip.inputYesNo(prompt= "Do you want to create a new table? (y/n) ",yesVal="y", noVal = "n",limit = 3)
-                        if ans == 'n':
-                            sys.exit()
-                        else:
-                            create_table(6,2,"Week 1", new = True)
-                            
-                        print("[INFO] The table was created succesfully.")
+            screen.display()
 
-                    except pyip.RetryLimitException:
-                        print("[INFO] Number attempts exceeded.")
-                        sys.exit()
-                    # except:
-                    #     print("[INFO] Something was wrong, the table couldn't be created.")
+            for index,option in enumerate(options, 1):
+                print(f"[{index}] {option}")
+            choose = pyip.inputInt("Enter: ", limit = 3, min = 1, max = len(options))
+            if choose == len(options):
+                break
+            choice = options[choose-1]
 
-        except ValueError:
-            print("A number is expected.")
+    except pyip.RetryLimitException:
+        print("[INFO] Number attempts exceeded.")
+    except gspread.exceptions.CellNotFound:
+        print(f"[INFO] Previous week table wasn't found.")     
+    except pyip.RetryLimitException:
+        print('[INFO] Limit of attempts exceeded.')
+    
+    print("Thanks for using the script!.")
     
     sys.exit()
 
