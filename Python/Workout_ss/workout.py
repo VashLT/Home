@@ -1,14 +1,8 @@
-import gspread
-from oauth2client.service_account import ServiceAccountCredentials
-import gspread_formatting
-import re
-import batch_class
-import gs
-import google_ss_color
-import sys, os
-from Display_Screen.Screen import Screen
-from datetime import timedelta, datetime
+import sys, os, re, google_ss_color,gs, gspread, gspread_formatting, time, batch_class
 import pyinputplus as pyip
+from Display_Screen.Screen import Screen
+from oauth2client.service_account import ServiceAccountCredentials
+from datetime import timedelta, datetime
 #! Python3
 # Workout spreadsheet manager - This script allows fill in data about exercise stuff and info about my weight.
 
@@ -19,7 +13,7 @@ import pyinputplus as pyip
 
 SPREADSHEET_NAME = "Workout"
 
-ss = gs.create_spread_sheet(SPREADSHEET_NAME)
+ss = gs.open_spread_sheet(SPREADSHEET_NAME)
 worksheet = ss.sheet1 #by default sheet number one
 
 def get_spreadsheet_id_from_url(url):
@@ -59,6 +53,7 @@ def body_weight_table(start_row,start_col, title):
     
     table.merge_cells(s_row+1, e_row-1, e_col-1, e_col-1)
     col = gs.column_type[start_col+1]
+
     #adding the formule
     worksheet.update_cell(s_row+1, e_col-1,f'=PROMEDIO({col}{s_row+1}:{col}{e_row-1})')
 
@@ -78,9 +73,12 @@ def fill_in(row,column,data):
         row += 1
 
 def match_table(number):
-    cell_match = worksheet.find("Week %s" % str(number))
-    location = [cell_match.row , cell_match.col]
-    return location
+    try:
+        cell_match = worksheet.find("Week %s" % str(number))
+        location = [cell_match.row , cell_match.col]
+        return location
+    except gspread.CellNotFound:
+        return None
 
 #it calculates the corresponding week dates according to a given day
 def parse_date(start_day, single_mode = False):
@@ -102,28 +100,28 @@ def add(row,column,value):
     cont = 0
     while cell.value != '':
         cont += 1
+        if cont > 6:
+            raise Exception("The column is full")
         cell = worksheet.cell(row + cont,column)
-        if cont > 7:
-            print("[INFO] The column is full.")
-            return
     worksheet.update_cell(cell.row, cell.col, value)
 
 def create_table(row,col,title,new = False):
     table = body_weight_table(row, col,title)
     ss.batch_update(table.get_body())
     
-    if not new: #new is True when the current sheet was just created
-        form = r"%d/%m/%Y"
-        raw_date = datetime.strptime(worksheet.cell(row-1,col).value,form) + timedelta(days = 1)
-        initial_date = raw_date.strftime(form)
-    else:
+    if new: #new is True when the current sheet was just created
         initial_date = input("Enter the initial date (dd/mm/yyy): ")
+    
+    else:
+        form = r"%d/%m/%Y"
+        raw_date = datetime.strptime(worksheet.cell(row-1,col).value,form) + timedelta(days = 1) #search for the corresponding initial day in the previous body weight table
+        initial_date = raw_date.strftime(form)
 
     dates_to_fill = parse_date(initial_date)
 
     print("[INFO] Filling the dates...")
     fill_in(row+1, col, dates_to_fill)
-    print("[INFO] Dates field filled succesfully.")
+    print("[INFO] Dates filled succesfully.")
 
 def merge(row,col):
     table = batch_class.batch_dealing(worksheet._properties['sheetId'])
@@ -192,6 +190,7 @@ def main():
                     print("[INFO] Something was wrong, the table couldn't be created.")
     except:
         print("[INFO] Something was wrong.")
+    time.sleep(1.5)
     
     try:
         while True:
@@ -200,9 +199,18 @@ def main():
                     new_coord = [6,2] #row, column by default in a new sheet  
                     create_table(new_coord[0], new_coord[1],f"Week {week}", new = True)
                 else:
-                    prev_table_coord = match_table(week-1)
+                    prev_table_coord = None
+                    iter_week = 4
+                    while not prev_table_coord: #search for the previous table, max number of weeks per month is 4
+                        prev_table_coord = match_table(iter_week) 
+                        iter_week -= 1
+                        if iter_week == 0:
+                            raise Exception("[INFO] The current sheet has no tables.")
+
                     new_coord = [prev_table_coord[0]+ 8 , prev_table_coord[1]]
-                    create_table(new_coord[0], new_coord[1],f"Week {week}")
+                    coord = new_coord
+                    week = iter_week + 2
+                    create_table(new_coord[0], new_coord[1],f"Week {week}") 
 
                 print("[INFO] The table was created succesfully.")      
 
@@ -259,10 +267,13 @@ def main():
                         row = coord[0]+1
                         col = coord[1]+4
                         merge(row,col)
+                    try:
+                        add(row,col,value)
+                        print(f"[INFO] {mssg} added succesfully.")
+                    except Exception as ex:
+                        print(f"[INFO] {ex.args[0]} - {mssg} data couldn't be added.")
+            time.sleep(1.5)        
 
-                    add(row,col,value)
-                    print(f"[INFO] {mssg} added succesfully.")
-                    
             ans = pyip.inputYesNo(f"Do you want to do anything else? (y/n) ",yesVal="y", noVal="n", limit=3)
             if ans != "y":
                 break
@@ -284,6 +295,8 @@ def main():
         print(f"[INFO] Previous week table wasn't found.")     
     except pyip.RetryLimitException:
         print('[INFO] Limit of attempts exceeded.')
+    except Exception as ex:
+        print(f"{ex.args[0]}")
     
     print("Thanks for using the script!.")
     

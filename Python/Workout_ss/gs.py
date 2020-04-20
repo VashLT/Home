@@ -20,7 +20,7 @@ column_type = {
     14: 'N',
 }
 
-def create_spread_sheet(ss_name):
+def open_spread_sheet(ss_name):
     scope = ['https://spreadsheets.google.com/feeds','https://www.googleapis.com/auth/drive']
     credentials = ServiceAccountCredentials.from_json_keyfile_name(os.path.join(os.path.expanduser("~"),"jose2","Documents","workout.json"), scope)
     client = gspread.authorize(credentials)
