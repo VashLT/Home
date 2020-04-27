@@ -134,7 +134,7 @@ class Task_list():
         print("[INFO] The task was removed succesfully.")
     
     def update_file(self):
-        path = os.path.join(os.path.expanduser('~'),'jose2','Documents','Tasks')
+        path = os.path.join(os.path.expanduser('~'),'jose2','Documents','Home', 'Python', 'Scripts','task data','Tasks')
         with shelve.open(path) as sfile:
             sfile["Task list"] = self.head
             sfile.close()
@@ -143,7 +143,7 @@ class Task_list():
 
 def store_tasks(task_list):
     try:
-        path = os.path.join(os.path.expanduser('~'),'jose2','Documents','Tasks')
+        path = os.path.join(os.path.expanduser('~'),'jose2','Documents','Home', 'Python', 'Scripts','task data','Tasks')
         with shelve.open(path) as task_file:
             first_task = task_file['Task list']
 
