@@ -22,6 +22,6 @@ column_type = {
 
 def open_spread_sheet(ss_name):
     scope = ['https://spreadsheets.google.com/feeds','https://www.googleapis.com/auth/drive']
-    credentials = ServiceAccountCredentials.from_json_keyfile_name(os.path.join(os.path.expanduser("~"),"jose2","Documents","workout.json"), scope)
+    credentials = ServiceAccountCredentials.from_json_keyfile_name(os.path.join(os.path.expanduser("~"),"jose2","Documents","Home","Python","Workout_ss","workout.json"), scope)
     client = gspread.authorize(credentials)
     return client.open(ss_name)
