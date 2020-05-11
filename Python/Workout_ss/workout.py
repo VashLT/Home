@@ -27,10 +27,7 @@ class Workout():
         #Screen object to keep updating the main frame which shows the name of the script
         self.screen = Screen("Workout manager", version = "1.2") #3/05/2020
         self.options = ["fill", "add", "create", "check"]
-        if len(args) < 2:
-            self.usage()
-        else:
-            self.digest_args(*args)
+        self.digest_args(*args)
     
     def usage(self):
         usage = """
@@ -44,35 +41,35 @@ class Workout():
 
     def digest_args(self, *args):
         self.screen.display()
+        if len(args) < 2 or args[1] not in self.options:
+            self.usage()
 
         if args[1] == "create":
             #to make sure the given name is right
             while True:
-                ans = pyip.inputYesNo(prompt= "Do you want to create a new sheet? (y/n)",yesVal="y", noVal = "n",limit = 3)
+                ans = pyip.inputYesNo(prompt= "Do you want to create a new sheet? (y/n): ",yesVal="y", noVal = "n",limit = 3)
                 sheet_name = pyip.inputStr("Enter the sheet name: ", limit = 3)
                 if ans == "y":
                     try:
                         self.worksheet = self.spreadsheet.add_worksheet(title=sheet_name, rows ="100", cols="25")
+                        self.create_table("Week 1", new = True)
                         break
                     except gspread.exceptions.APIError:
                         print(f'[INFO] A sheet with the name "{sheet_name}" already exists.')
                 else:
                     try:
                         self.worksheet = self.spreadsheet.worksheet(sheet_name)
+                        self.update_cloud("create",(DEFAULT_ROW, DEFAULT_COLUMN))
                         break
                     except gspread.exceptions.WorksheetNotFound:
                         print("[INFO] The sheet wasn't found.")
 
-            self.create_table("Week 1", new = True)
-            self.update_cloud([], (DEFAULT_ROW, DEFAULT_COLUMN))
-            
         else:
             #FIND THE WORKSHEET AND THE CORRESPONDING WEIGHT TABLE
             try:
                 sheet_name = input("Enter the name of the sheet: ").lower().capitalize()
+                self.worksheet = self.spreadsheet.worksheet(sheet_name) \
                 
-                self.worksheet = self.spreadsheet.worksheet(sheet_name)
-
                 self.week = pyip.inputInt("Enter the week number: ",limit = 3)
                 print("[INFO] searching the week table...")
 
@@ -83,6 +80,8 @@ class Workout():
                     ans = pyip.inputYesNo(prompt= "Do you want to create a new table? (y/n) ",yesVal="y", noVal = "n",limit = 3)
                     if ans == 'y':
                         self.create_table("Week 1", new = True)
+                    else:
+                        sys.exit()
                 else:
                     print("[INFO] Week table found succesfully.")
 
@@ -96,11 +95,14 @@ class Workout():
                 if ans == 'n':
                     sys.exit()
                 self.worksheet = self.spreadsheet.add_worksheet(title=sheet_name, rows ="100", cols="25")
+                self.week = 1
+                self.update_cloud(args[1], coordinates)
+
 
             except pyip.RetryLimitException:
                 print("[INFO] Limit of attempts exceeded.")
             #a little break to read the information
-            time.sleep(1.5)
+            time.sleep(1)
 
 
 
@@ -113,14 +115,15 @@ class Workout():
                     limit = 4 #max 4 weight tables per sheet
                     #search for the previous table, max number of weeks per month is 4
                     while not prev_table_coord: 
-                        prev_table_coord = self.find_table(week = limit) 
-                        limit -= 1
                         if limit == 0:
                             raise Exception("[INFO] The current sheet has no weight tables.")
+                        prev_table_coord = self.find_table(week = limit) 
+                        limit -= 1
 
                     coord = (prev_table_coord[0]+ 8 , prev_table_coord[1])
-                    week = limit + 2
-                    self.create_table(coord[0], coord[1],f"Week {self.week}") 
+                    self.week = limit + 2
+                    self.create_table(f"Week {self.week}", row = coord[0],col =  coord[1],) 
+                    location = self.find_table(week = self.week)
                     print("[INFO] The table was created succesfully.")      
 
                 elif do == "check":
@@ -153,12 +156,21 @@ class Workout():
                             data.append(value)
 
                         if opc == 1:
-                            self.fill_data(location[0] + 1, location[1] + 1, data)
+                            temp_location = [location[0] + 1, location[1] + 1]
                         elif opc == 2:
-                            self.fill_data(location[0] + 1, location[1] + 2, data)
+                            temp_location = [location[0] + 1, location[1] + 2]
                         elif opc == 3:
                             self.merge(location[0]+1, location[1] + 4)
-                            self.add(location[0]+1, location[1] + 4, data[0]) #only working with one value
+                            temp_location = [location[0]+1, location[1] + 4] 
+                            data = data[0] #only working with one value
+                        #walks each value to update the weight table
+                        for index,value in enumerate(data):
+                                                    #row          #col
+                            result = self.add(temp_location[0], temp_location[1], value)
+                            if not result: #column is full
+                                print("[ERROR] The column is full. Next values couldn't be added:")
+                                print(f"                            {data[index:]}")
+                                break 
 
                         print(f"[INFO] {mssg} data filled succesfully.")
 
@@ -174,12 +186,12 @@ class Workout():
                             row = location[0] + 1
                             col = location[1] + 4
                             self.merge(row,col)
-
-                        try:
-                            self.add(row,col,value)
+                        #True if data was added succesfully.
+                        state = self.add(row,col,value)
+                        if not state:
+                            print(f"[ERROR] The column is full.")
+                        else:
                             print(f"[INFO] {mssg} added succesfully.")
-                        except Exception as ex:
-                            print(f"[INFO] {ex.args[0]} - {mssg} data couldn't be added.")
                 time.sleep(1.5)        
 
                 #this implies is the first modification
@@ -230,7 +242,7 @@ class Workout():
         self.fill_data(row+1, col, dates_to_fill)
         print("[INFO] Dates filled succesfully.")
         #update the current working week
-        self.week = [int(char) for char in title.split() if char.is_digit()][0]
+        self.week = [int(char) for char in title if char.isdigit()][0]
         print("[INFO] The weight table was created succesfully.")
     
     def find_table(self, week):
@@ -270,9 +282,11 @@ class Workout():
             #a column has max 7 values
             cont += 1
             if cont > 6:
-                raise Exception("The column is full")
+                return False
+                
             cell = self.worksheet.cell(row + cont,column)
         self.worksheet.update_cell(cell.row, cell.col, value)
+        return True
 
     def merge(self,row,col):
         table = batch_class.batch_dealing(self.worksheet._properties['sheetId'])
