@@ -1,6 +1,6 @@
 import sys, os, re, google_ss_color,gs, gspread, gspread_formatting, time, batch_class
 import pyinputplus as pyip
-from Display_Screen.Screen import Screen
+from My_modules.Screen.Screen import Screen
 from oauth2client.service_account import ServiceAccountCredentials
 from datetime import timedelta, datetime
 
