@@ -1,8 +1,12 @@
-import sys, os, re, google_ss_color,gs, gspread, gspread_formatting, time, batch_class
-import pyinputplus as pyip
 from My_modules.Screen.Screen import Screen
 from oauth2client.service_account import ServiceAccountCredentials
 from datetime import timedelta, datetime
+from prettytable import PrettyTable
+
+import sys, os, re, gspread, time
+import google_ss_color,gs, gspread_formatting, batch_class #custom modules
+import pyinputplus as pyip
+
 
 #! Python3
 
@@ -26,7 +30,7 @@ class Workout():
         self.spreadsheet = gs.open_spread_sheet(SPREADSHEET_NAME)
         #Screen object to keep updating the main frame which shows the name of the script
         self.screen = Screen("Workout manager", version = "1.2") #3/05/2020
-        self.options = ["fill", "add", "create", "check"]
+        self.options = ["fill", "add", "create", "check","table"]
         self.digest_args(*args)
     
     def usage(self):
@@ -35,6 +39,7 @@ class Workout():
                    (workout add)    - Input dialogue to prompt the data to add
                    (workout create) - Create a body weight table
                    (workout check)  - Print the averague weight of a given week
+                   (workout table)  - Print the current table data on command line
             """
         print(usage)
         sys.exit()
@@ -71,7 +76,7 @@ class Workout():
                 self.worksheet = self.spreadsheet.worksheet(sheet_name) \
                 
                 self.week = pyip.inputInt("Enter the week number: ",limit = 3)
-                print("[INFO] searching the week table...")
+                print("[IN PROGRESS] searching the week table...")
 
                 coordinates = self.find_table(self.week) #return the location of the weight table
 
@@ -135,6 +140,14 @@ class Workout():
                     finish_day = self.construct_dates(first_day, single_mode = True)
                     prom_weight = self.worksheet.cell(row , col + 3).value
                     print(f"The prom weight during the week {first_day}~{finish_day} is {prom_weight} kg")
+                
+                elif do == "table":
+                    self.screen.display()
+                    table = self.get_pretty_table()
+                    print(table)
+                    #to check the table data
+                    input("[INFO] Press Enter to continue ...")
+                    
                 
                 elif do == "fill" or do == "add":
                     data = ["weight", "body fat %", "calories per day"] #categories to manipulate
@@ -224,7 +237,7 @@ class Workout():
             print(f"{ex.args[0]}")
 
     def create_table(self, title, row  = DEFAULT_ROW,col = DEFAULT_COLUMN,new = False):
-        print("[INFO] Creating the weight table...")
+        print("[IN PROGRESS] Creating the weight table...")
         table = self.body_weight_table(row, col,title)
         self.spreadsheet.batch_update(table.get_body())
         
@@ -238,7 +251,7 @@ class Workout():
 
         dates_to_fill = self.construct_dates(initial_date)
 
-        print("[INFO] Filling the dates...")
+        print("[IN PROGRESS] Filling the dates...")
         self.fill_data(row+1, col, dates_to_fill)
         print("[INFO] Dates filled succesfully.")
         #update the current working week
@@ -340,5 +353,44 @@ class Workout():
 
         return  table    
 
+    def get_data(self):
+        """ get all data store in the current week number"""
+        try:
+            init_row, init_col = self.find_table(self.week)
+            init_row += 1
+            data = []
+            #find dates, weights and %fat 
+            for row in range(init_row, init_row + 7):
+                date = self.worksheet.cell(row, init_col).value     
+                weight = self.worksheet.cell(row, init_col + 1).value
+                fat = self.worksheet.cell(row, init_col + 2).value
+                data.append((date, weight, fat))
+
+            prom_weight = self.worksheet.cell(init_row, init_col + 3).value
+            calories = self.worksheet.cell(init_row, init_col + 4).value
+
+            return [data, prom_weight, calories]
+
+        except Exception as ex:
+            print(f"[ERROR] {ex}")
+            return None
+
+    def get_pretty_table(self):
+        values = self.get_data()
+        table = PrettyTable()
+        table.title = "Week %s" % self.week
+        table.field_names = ["Date","Weight",r"% fat", "Prom Weight", "Calories p/w"]
+        #construct table
+        index = 1
+        for date, weight, fat in values[0]:
+            if index == 4:
+                table.add_row([date, weight, fat, values[1], values[2]])
+            else:
+                table.add_row([date, weight, fat,'', ''])
+            index += 1
+        
+        return table
+
+    
 if __name__ == "__main__":
     Workout(*sys.argv)
