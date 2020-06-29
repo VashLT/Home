@@ -1,20 +1,15 @@
-from My_modules.Screen.Screen import Screen
 from oauth2client.service_account import ServiceAccountCredentials
 from datetime import timedelta, datetime
 from prettytable import PrettyTable
 
 import sys, os, re, gspread, time
-import google_ss_color,gs, gspread_formatting, batch_class #custom modules
+import google_ss_color,gs, gspread_formatting, batchFormatter, table #custom modules
 import pyinputplus as pyip
 
 
 #! Python3
 
 # Workout spreadsheet manager 
-""" 
-    This script allows fill in data about exercise stuff and info about my weight. The data is store
-    in a google spreadsheet on the cloud.
-"""
 
 # pylint: disable=maybe-no-member
 # pylint: disable=no-value-for-parameter
@@ -26,227 +21,54 @@ DEFAULT_COLUMN = 2
 
 
 class Workout():
-    def __init__(self, *args):
+    def __init__(self):
         self.spreadsheet = gs.open_spread_sheet(SPREADSHEET_NAME)
+        self.sheets = [sheet.title for sheet in self.spreadsheet.worksheets()]
         #Screen object to keep updating the main frame which shows the name of the script
-        self.screen = Screen("Workout manager", version = "1.2") #3/05/2020
         self.options = ["fill", "add", "create", "check","table"]
-        self.digest_args(*args)
+        self.fields = {"Date": 0,"Weight": 1,r"% fat" : 2, "Prom Weight" : 3, "Calories p/w" : 4} # {field : relative column taking origin from column 1}
+
+    def set_worksheet(self, name):
+        self.worksheet = self.spreadsheet.worksheet(name)
+        self.update_formatter()
+
+    def update_formatter(self):
+        self.batch = batchFormatter.BatchFormatter(self.worksheet._properties['sheetId'])
+
+    def show_sheets(self):
+        for index,sheet in enumerate(self.sheets,1):
+            print(f"[{index}] {sheet}")
+
+    def create_sheet(self, name):
+        self.spreadsheet.add_worksheet(title = name, rows = "100", cols = "25")
     
-    def usage(self):
-        usage = """
-            Usage: (workout fill)   - Input dialogue to prompt the data to fill
-                   (workout add)    - Input dialogue to prompt the data to add
-                   (workout create) - Create a body weight table
-                   (workout check)  - Print the averague weight of a given week
-                   (workout table)  - Print the current table data on command line
-            """
-        print(usage)
-        sys.exit()
-
-    def digest_args(self, *args):
-        self.screen.display()
-        if len(args) < 2 or args[1] not in self.options:
-            self.usage()
-
-        if args[1] == "create":
-            #to make sure the given name is right
-            while True:
-                ans = pyip.inputYesNo(prompt= "Do you want to create a new sheet? (y/n): ",yesVal="y", noVal = "n",limit = 3)
-                sheet_name = pyip.inputStr("Enter the sheet name: ", limit = 3)
-                if ans == "y":
-                    try:
-                        self.worksheet = self.spreadsheet.add_worksheet(title=sheet_name, rows ="100", cols="25")
-                        self.create_table("Week 1", new = True)
-                        break
-                    except gspread.exceptions.APIError:
-                        print(f'[INFO] A sheet with the name "{sheet_name}" already exists.')
-                else:
-                    try:
-                        self.worksheet = self.spreadsheet.worksheet(sheet_name)
-                        self.update_cloud("create",(DEFAULT_ROW, DEFAULT_COLUMN))
-                        break
-                    except gspread.exceptions.WorksheetNotFound:
-                        print("[INFO] The sheet wasn't found.")
-
-        else:
-            #FIND THE WORKSHEET AND THE CORRESPONDING WEIGHT TABLE
-            try:
-                sheet_name = input("Enter the name of the sheet: ").lower().capitalize()
-                self.worksheet = self.spreadsheet.worksheet(sheet_name) \
-                
-                self.week = pyip.inputInt("Enter the week number: ",limit = 3)
-                print("[IN PROGRESS] searching the week table...")
-
-                coordinates = self.find_table(self.week) #return the location of the weight table
-
-                if not coordinates:
-                    print(f"[INFO] Previous week table wasn't found.")
-                    ans = pyip.inputYesNo(prompt= "Do you want to create a new table? (y/n) ",yesVal="y", noVal = "n",limit = 3)
-                    if ans == 'y':
-                        self.create_table("Week 1", new = True)
-                    else:
-                        sys.exit()
-                else:
-                    print("[INFO] Week table found succesfully.")
-
-                #this is intended to handle with add, check, fill and create
-                self.update_cloud(args[1], coordinates)
-
-            except gspread.exceptions.WorksheetNotFound:
-                print("[INFO] The sheet wasn't found.")
-                
-                ans = pyip.inputYesNo(prompt= "Do you want to create a new sheet? (y/n)",yesVal="y", noVal = "n",limit = 3)
-                if ans == 'n':
-                    sys.exit()
-                self.worksheet = self.spreadsheet.add_worksheet(title=sheet_name, rows ="100", cols="25")
-                self.week = 1
-                self.update_cloud(args[1], coordinates)
-
-
-            except pyip.RetryLimitException:
-                print("[INFO] Limit of attempts exceeded.")
-            #a little break to read the information
-            time.sleep(1)
-
-
-
-    def update_cloud(self, do, location):
-        try:
-            while True:
-                if do == 'create':
-                    #this handles with a sheet which has previous weight tables
-                    prev_table_coord = None
-                    limit = 4 #max 4 weight tables per sheet
-                    #search for the previous table, max number of weeks per month is 4
-                    while not prev_table_coord: 
-                        if limit == 0:
-                            raise Exception("[INFO] The current sheet has no weight tables.")
-                        prev_table_coord = self.find_table(week = limit) 
-                        limit -= 1
-
-                    coord = (prev_table_coord[0]+ 8 , prev_table_coord[1])
-                    self.week = limit + 2
-                    self.create_table(f"Week {self.week}", row = coord[0],col =  coord[1],) 
-                    location = self.find_table(week = self.week)
-                    print("[INFO] The table was created succesfully.")      
-
-                elif do == "check":
-
-                    row = location[0] + 1
-                    col = location[1] 
-
-                    first_day= self.worksheet.cell(row, col).value
-                    finish_day = self.construct_dates(first_day, single_mode = True)
-                    prom_weight = self.worksheet.cell(row , col + 3).value
-                    print(f"The prom weight during the week {first_day}~{finish_day} is {prom_weight} kg")
-                
-                elif do == "table":
-                    self.screen.display()
-                    table = self.get_pretty_table()
-                    print(table)
-                    #to check the table data
-                    input("[INFO] Press Enter to continue ...")
-                    
-                
-                elif do == "fill" or do == "add":
-                    data = ["weight", "body fat %", "calories per day"] #categories to manipulate
-                    self.screen.display()
-
-                    for index, kind in enumerate(data,1): #shows the categories
-                        print(f"[{index}] - > {kind}")
-
-                    opc = pyip.inputInt("Enter: ", greaterThan=0,max = len(data), limit = 3)
-
-                    mssg = data[opc - 1]
-
-                    if do == "fill":
-                        data = []
-                        for index in range(7):
-                            value = pyip.inputFloat(f"[{index + 1}] Enter the {mssg}: ", limit = 3, min=0, blank=True)
-                            if value == "":
-                                break
-                            data.append(value)
-
-                        if opc == 1:
-                            temp_location = [location[0] + 1, location[1] + 1]
-                        elif opc == 2:
-                            temp_location = [location[0] + 1, location[1] + 2]
-                        elif opc == 3:
-                            self.merge(location[0]+1, location[1] + 4)
-                            temp_location = [location[0]+1, location[1] + 4] 
-                            data = data[0] #only working with one value
-                        #walks each value to update the weight table
-                        for index,value in enumerate(data):
-                                                    #row          #col
-                            result = self.add(temp_location[0], temp_location[1], value)
-                            if not result: #column is full
-                                print("[ERROR] The column is full. Next values couldn't be added:")
-                                print(f"                            {data[index:]}")
-                                break 
-
-                        print(f"[INFO] {mssg} data filled succesfully.")
-
-                    elif do == "add":
-                        value = pyip.inputFloat(f"Enter the {mssg}: ",limit = 3)
-                        if opc == 1:
-                            row = location[0] + 1
-                            col = location[1] + 1
-                        elif opc == 2:
-                            row = location[0] + 1
-                            col = location[1] + 2
-                        elif opc == 3:
-                            row = location[0] + 1
-                            col = location[1] + 4
-                            self.merge(row,col)
-                        #True if data was added succesfully.
-                        state = self.add(row,col,value)
-                        if not state:
-                            print(f"[ERROR] The column is full.")
-                        else:
-                            print(f"[INFO] {mssg} added succesfully.")
-                time.sleep(1.5)        
-
-                #this implies is the first modification
-                if "Change Sheet" not in self.options:
-                    ans = pyip.inputYesNo(f"Do you want to do anything else? (y/n) ",yesVal="y", noVal="n", limit=3)
-                    if ans != "y":
-                        print("Thanks for using the script!.")
-                        sys.exit()
-                    self.options.append("Change Sheet")
-                    self.options.append("Exit")
-
-                self.screen.display()
-
-                for index,option in enumerate(self.options, 1):
-                    print(f"[{index}] {option}")
-                opc = pyip.inputInt("Enter: ", limit = 3, min = 1, max = len(self.options))
-                #this mean the user has typed the exit option
-                if opc == len(self.options):
-                    print("Thanks for using the script!.")
-                    sys.exit()
-                do = self.options[opc - 1 ]
-                if do == "Change Sheet":
-                    self.digest_args(*("Workout", "Change Sheet"))
-
-        except pyip.RetryLimitException:
-            print("[INFO] Number attempts exceeded.")
-        except gspread.exceptions.CellNotFound:
-            print(f"[INFO] Previous week table wasn't found.")     
-        except Exception as ex:
-            print(f"{ex.args[0]}")
+    def get_previous_table_coord(self):
+        coord = None
+        limit = 4 #max 4 weight tables per sheet
+        #search for the previous table, max number of weeks per month is 4
+        for week in range(limit, 0, -1):
+            coord = self.find_table(week = week)
+            if coord:
+                return (coord, week)
+        return None
+    
+    def update_location(self):
+        self.location = self.find_table(week = self.week)
+        assert self.location
 
     def create_table(self, title, row  = DEFAULT_ROW,col = DEFAULT_COLUMN,new = False):
+        assert hasattr(self, "worksheet")
         print("[IN PROGRESS] Creating the weight table...")
-        table = self.body_weight_table(row, col,title)
-        self.spreadsheet.batch_update(table.get_body())
+        weight_table = table.Table(self.worksheet, row, col, title).format
+
+        self.spreadsheet.batch_update(weight_table.get_body())
         
         if new: #for a just created sheet it's necessary a initial date
             initial_date = input("Enter the initial date (dd/mm/yyy): ")
         
         else:
             form = r"%d/%m/%Y" #DD/MM/YY
-            raw_date = datetime.strptime(self.worksheet.cell(row-1,col).value,form) + timedelta(days = 1) #search for the corresponding initial day in the previous body weight table
+            raw_date = datetime.strptime(self.worksheet.cell(row - 1,col).value,form) + timedelta(days = 1) #search for the corresponding initial day in the previous body weight table
             initial_date = raw_date.strftime(form)
 
         dates_to_fill = self.construct_dates(initial_date)
@@ -257,6 +79,7 @@ class Workout():
         #update the current working week
         self.week = [int(char) for char in title if char.isdigit()][0]
         print("[INFO] The weight table was created succesfully.")
+        self.update_location()
     
     def find_table(self, week):
         try:
@@ -265,6 +88,23 @@ class Workout():
             return location
         except gspread.CellNotFound:
             return None
+
+
+    def construct_table(self):
+        values = self.get_data()
+        table = PrettyTable()
+        table.title = "Week %s" % self.week
+        table.field_names = self.fields
+        #construct table
+        index = 1
+        for date, weight, fat in values[0]:
+            if index == 4:
+                table.add_row([date, weight, fat, values[1], values[2]])
+            else:
+                table.add_row([date, weight, fat,'', ''])
+            index += 1
+        
+        return table
     
     #data must be an iterable object
     def fill_data(self, row,column,data):
@@ -302,56 +142,8 @@ class Workout():
         return True
 
     def merge(self,row,col):
-        table = batch_class.batch_dealing(self.worksheet._properties['sheetId'])
-        table.merge_cells(row,row+6,col,col)
-        self.spreadsheet.batch_update(table.get_body())
-
-    def body_weight_table(self,start_row,start_col, title):
-        assert hasattr(self, "worksheet")
-        palette_colors = ['LIGHT YELLOW 3','LIGHT RED 3','LIGHT ORANGE 3','LIGHT PURPLE 2','LIGHT RED BERRY 3']
-        #table dimentions
-        s_row = start_row
-        e_row = start_row + 8
-        s_col = start_col
-        e_col = start_col + 4
-
-        #create an instance of batch_dealing class
-        table = batch_class.batch_dealing(self.worksheet._properties['sheetId'])
-
-        #title cell
-
-        table.merge_cells(s_row, s_row, s_col, e_col)
-        self.worksheet.update_cell(s_row,s_col,title)
-
-
-        #it gives color to the columns
-        for row in range(s_row+1, e_row):
-            index = 0
-            for column in range(s_col, e_col+1):
-                if column == s_col:
-                    table.set_date_format(row,column)
-
-                if column == s_col+1 or column == s_col+2:
-                    table.set_number_format(row,column)
-
-                table.set_color( google_ss_color.rgb( palette_colors[index] ), row, column)
-                table.font_size(10, row, column, bold = True)
-                table.set_borders((0,0,0), "SOLID", row, column)
-                index += 1
-
-        #Prom column weight    
-        table.merge_cells(s_row+1, e_row-1, e_col-1, e_col-1)
-        col = gs.column_type[start_col+1]
-        self.worksheet.update_cell(s_row+1, e_col-1,f'=PROMEDIO({col}{s_row+1}:{col}{e_row-1})')  #add the formule
-
-
-        table.font_size(10, s_row, s_col, bold = True)
-        table.set_borders_range((0,0,0), "SOLID", s_row,s_row,s_col,e_col)
-        table.set_color( google_ss_color.rgb('LIGHT CORNFLOWER 2'), s_row, s_col)
-        #setting the alignment
-        table.alignment_range("CENTER",s_row, e_row,s_col, e_col)
-
-        return  table    
+        self.batch.merge_cells(row,row+6,col,col)
+        self.spreadsheet.batch_update(self.batch.get_body())
 
     def get_data(self):
         """ get all data store in the current week number"""
@@ -375,22 +167,3 @@ class Workout():
             print(f"[ERROR] {ex}")
             return None
 
-    def get_pretty_table(self):
-        values = self.get_data()
-        table = PrettyTable()
-        table.title = "Week %s" % self.week
-        table.field_names = ["Date","Weight",r"% fat", "Prom Weight", "Calories p/w"]
-        #construct table
-        index = 1
-        for date, weight, fat in values[0]:
-            if index == 4:
-                table.add_row([date, weight, fat, values[1], values[2]])
-            else:
-                table.add_row([date, weight, fat,'', ''])
-            index += 1
-        
-        return table
-
-    
-if __name__ == "__main__":
-    Workout(*sys.argv)
