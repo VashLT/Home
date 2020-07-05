@@ -9,7 +9,7 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import ElementNotInteractableException
 
 from pathlib import Path
-# from My_modules.Screen.Screen import Screen
+from My_modules.Screen.Screen import Screen
 import logging, time, os, requests, sys, configparser
 
 #! Python3
@@ -21,7 +21,7 @@ import logging, time, os, requests, sys, configparser
 
 #INPUT None
 #OUTPUT None
-PATH = Path(Path.home())
+PATH = Path(Path.home() / "jose2" / "Documents" / "Home" / "Python" / "Scripts" / "meal_debug")
 DEFAULT_DEBUG_PATH = PATH / "debug.txt"
 #clean debug file
 os.remove(DEFAULT_DEBUG_PATH)
@@ -35,7 +35,7 @@ class myfitnesspal():
     def __init__(self, args):
         """ args are parse as add, or delete"""
         self.url = "https://www.myfitnesspal.com/"
-        #self.screen = Screen("Meal manager", version='0.1')
+        self.screen = Screen("Meal manager", version='0.1')
         #order matters
         self.meals = {"Desayuno": 0, "Media Mañana": 1, "Almuerzo": 2, "Media tarde": 3, "Cena": 4}
         self.translate(language = "spanish")
@@ -57,7 +57,7 @@ class myfitnesspal():
         self.parser = parser[language]
         
     def digest_args(self, args):
-        #self.screen.display()
+        self.screen.display()
         if len(args) < 2:
             self.usage()
 
@@ -67,6 +67,7 @@ class myfitnesspal():
             print("[IN PROGRESS] Loading page...")
             self.get_page()
             print("[INFO] Web page loaded succesfully.")
+            time.sleep(1)
             self.LogIn()
             time.sleep(3)
 
@@ -256,10 +257,10 @@ class myfitnesspal():
             self.driver.switch_to_window(pop_up_fb_page)
 
             user_box = self.driver.find_element_by_id("email")
-            user_box.send_keys("Electronic mail")
+            user_box.send_keys("jj_silvaa@hotmail.com")
 
             pw_box = self.driver.find_element_by_id("pass")
-            pw_box.send_keys("Password")
+            pw_box.send_keys("Chivasregal123")
 
             time.sleep(3)
             self.driver.find_element_by_name("login").click()
@@ -349,4 +350,4 @@ class myfitnesspal():
 
 
 if __name__ == "__main__":
-    mfp = myfitnesspal(sys.argv)
+    myfitnesspal(sys.argv)
