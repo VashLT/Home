@@ -3,7 +3,7 @@ from datetime import timedelta, datetime
 from prettytable import PrettyTable
 
 import sys, os, re, gspread, time
-import google_ss_color,gs, gspread_formatting, batchFormatter, table #custom modules
+import google_ss_color,gs, gspread_formatting,table #custom modules
 import pyinputplus as pyip
 
 
@@ -33,15 +33,20 @@ class Workout():
         self.update_formatter()
 
     def update_formatter(self):
-        self.batch = batchFormatter.BatchFormatter(self.worksheet._properties['sheetId'])
+        self.batch = table.BatchFormatter(self.worksheet._properties['sheetId'])
 
     def show_sheets(self):
         for index,sheet in enumerate(self.sheets,1):
             print(f"[{index}] {sheet}")
 
     def create_sheet(self, name):
-        self.spreadsheet.add_worksheet(title = name, rows = "100", cols = "25")
-    
+        try:
+            self.spreadsheet.add_worksheet(title = name, rows = "100", cols = "25")
+            self.sheets.append(name)
+        except Exception as ex:
+            print(f"[ERROR] {type(ex)} - {ex}")
+
+
     def get_previous_table_coord(self):
         coord = None
         limit = 4 #max 4 weight tables per sheet

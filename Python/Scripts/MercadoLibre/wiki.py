@@ -10,9 +10,10 @@ import requests, bs4, webbrowser, sys
 SAMPLES = 3
 BROWSER = 'C:\Program Files\Mozilla Firefox'
 
+
 class Searcher():
-    def __init__(self,*args):
-        self.url = "https://listado.mercadolibre.com.co/"
+    def __init__(self, *args):
+        self.url = "https://listado.mercadolibre.com.co/" 
         self.seller_level = "green"
         self.digest_args(args)
 
@@ -37,7 +38,7 @@ class Searcher():
         self.search(product, low_price=low_price)
     
     def get_page(self, url):
-        """ save some code from writing the same everyimte"""
+        """ save some code from writing the same everytime"""
         try:
             page = requests.get(url)
             page.raise_for_status()#check response

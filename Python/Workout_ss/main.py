@@ -79,6 +79,7 @@ class Menu():
                     else:
                         if create:
                             self.workout.create_sheet(sheet_name)
+                            break
                         else:
                             print(f"[INFO] There's no such a sheet called {sheet_name}")
                             self.workout.show_sheets()
@@ -228,3 +229,4 @@ def main(args):
 
 if __name__ == "__main__":
     main(sys.argv)
+
