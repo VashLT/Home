@@ -18,7 +18,12 @@ class Searcher():
         self.digest_args(args)
 
     def digest_args(self, args):
-        """ concatenate each arg """
+        """ concatenate each arg 
+            args:
+                seller_level + color
+                price  - find cheapests products
+        
+        """
         low_price = False
         reading_args = False
         boundary = 0
@@ -56,7 +61,7 @@ class Searcher():
         page = self.get_page(url)
 
         soup = bs4.BeautifulSoup(page.text, "html.parser")
-        css_selector = "li.results-item"
+        css_selector = "li.ui-search-layout__item"
         headers = soup.select(css_selector)
         if not headers:
             print(f"[INFO] No articles matched {product}") 
@@ -85,13 +90,12 @@ class Searcher():
     
     def get_header_link(self, header):
         """ find link from soup object"""
-        # url_soup = header.select("div.item__info") #if not add li.results-item at the beginning
         a_set = header.findChildren("a", recursive=True)
         if not a_set:
             return
         for element in a_set:
             class_name = " ".join(element['class'])
-            if class_name.startswith('item__'):
+            if class_name.startswith('ui-search'):
                 target_element = element
                 break
         if not target_element:

@@ -1,5 +1,8 @@
 #ignore .vscode files
 
+*.log
+*.pdb
+*.json
 *.exe
 .vscode
 __pycache__
