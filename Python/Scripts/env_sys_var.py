@@ -1,11 +1,11 @@
 import sys
 import os
 import subprocess
-from My_modules.Screen.Screen import Screen
+from Python.Modules.Screen.Screen import Screen
 
 
 #!Python 3
-# This script it shows the currently enviroment variables, and checks if a path is added or not. 
+# This script it shows the currently enviroment variables, and checks if a path is added or not.
 
 screen = Screen('System variables manager')
 screen.display()
@@ -17,11 +17,11 @@ if len(sys.argv) < 2:
 
 arg = sys.argv[1]
 
-enviroment_vars = subprocess.check_output('echo %PATH%', shell = True)
+enviroment_vars = subprocess.check_output('echo %PATH%', shell=True)
 paths_list = enviroment_vars.decode('utf-8').split(';')[:-1]
 
 if arg == 'vars':
-    for index,path in enumerate(paths_list,1):
+    for index, path in enumerate(paths_list, 1):
         print(f'[{index}] -> {path}')
 
 else:
@@ -31,4 +31,3 @@ else:
             sys.exit()
 
     print("The path isn't added.")
-    

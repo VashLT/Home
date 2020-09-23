@@ -2,14 +2,15 @@ import pyperclip
 import sys
 import os
 import time
-from My_modules.Screen.Screen import Screen
+from Python.Modules.Screen.Screen import Screen
 
 #! Python 3
-# A char counter program 
+# A char counter program
 
-special_chars = ["\n","\t","\b","\f","\a","\r"]
+special_chars = ["\n", "\t", "\b", "\f", "\a", "\r"]
 
-def char_counter(message, blanks = True):
+
+def char_counter(message, blanks=True):
     chars = {}
     for char in message:
         if not blanks:
@@ -38,7 +39,7 @@ arg = sys.argv[1]
 try:
     arg = int(arg)
     blanks = True
-    string = pyperclip.paste().replace(' ','')
+    string = pyperclip.paste().replace(' ', '')
     if arg == 3:
         print(f"There are {len(string)} words.")
         sys.exit()
@@ -53,5 +54,3 @@ try:
 
 except ValueError:
     print("The second argument must be a number")
-
-

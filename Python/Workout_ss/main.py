@@ -1,6 +1,6 @@
 import sys, gspread, time
 import pyinputplus as pyip
-from My_modules.Screen.Screen import Screen
+from Python.Modules.Screen.Screen import Screen
 from workout import *
 
 #! Python 3
