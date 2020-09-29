@@ -1,4 +1,5 @@
-import sqlite3, json
+import sqlite3, json, os
+from pathlib import Path
 import pyinputplus as pyip
 from datetime import datetime
 
@@ -39,8 +40,9 @@ class Database():
                 )""")
         try:
         #init or open json file that store the history
-            with open('history.json') as json_file:
-                    self.history = json.load(json_file)
+            with open("history.json", encoding='utf-8') as json_file:
+                self.history = json.load(json_file)
+                
         except FileNotFoundError: #first creation of the file
             self.history = {}
         except Exception as ex:

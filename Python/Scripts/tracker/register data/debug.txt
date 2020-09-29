@@ -82,3 +82,13 @@
 2020-08-24 12:01:13,770 - Query: name and response: ('Lisaura Silva Martinez',)
 2020-08-26 08:58:44,749 - Query: name and response: ('Lisaura Silva Martinez',)
 2020-09-01 11:21:31,451 - Query: name and response: ('Lisaura Silva Martinez',)
+2020-09-27 14:48:33,073 - Query: name and response: ('Lisaura Silva Martinez',)
+2020-09-27 14:54:59,904 - Query: name and response: ('Lisaura Silva Martinez',)
+2020-09-27 14:55:38,396 - given date 27/9/2020
+2020-09-27 14:55:38,396 - Query: name and response: ('Lisaura Silva Martinez',)
+2020-09-27 14:56:18,583 - Query: money and response: (425000,)
+2020-09-27 14:56:18,583 - Query: name and response: ('Lisaura Silva Martinez',)
+2020-09-27 14:58:02,157 - given date 27/9/2020
+2020-09-27 14:58:02,158 - Query: name and response: ('Lisaura Silva Martinez',)
+2020-09-27 16:20:45,475 - Query: name and response: ('Lisaura Silva Martinez',)
+2020-09-27 19:58:55,968 - Query: name and response: ('Lisaura Silva Martinez',)

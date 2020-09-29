@@ -1,4 +1,5 @@
-import os, sys
+import os
+import sys
 from datetime import datetime
 from register import Logger
 from register import PATH
@@ -9,27 +10,32 @@ from register import PATH
     This script keep track of cash transactions
 """
 
+
 def usage():
-        usage = """
-        Usage: $tracker id/cedula (add/substract) 'amount money' 
-               $tracker id/cedula log (date ~optional) - Print all the additions and deletions 
+    usage = """
+        Usage: $register id/cedula (add/substract) 'amount money' 
+               $register id/cedula log (date ~optional) - Print all the additions and deletions 
         """
-        print(usage)
+    print(usage)
+
 
 def check_date_format(date):
-    date_format = r'%d/%m/%Y' 
+    date_format = r'%d/%m/%Y'
     try:
-        datetime.strptime(date, date_format) #check given arg is a right date-format
+        # check given arg is a right date-format
+        datetime.strptime(date, date_format)
         return True
 
     except ValueError:
         return False
+
 
 def main(sys_args):
     """ handle args catched by sys.argv """
     os.chdir(PATH)
     if len(sys_args) < 3:
         usage()
+
     else:
         args = sys_args[1:]
         cc, task = args[:2]
@@ -37,18 +43,20 @@ def main(sys_args):
         if task == 'log':
             try:
                 date = args[2]
+                input(f": {date}")
                 if not check_date_format(date):
-                    print(f"[INFO] {date} doesn't match a correct date. CORRECT DATE FORMAT dd/mm/yyyy")
-                    date = None              
+                    print(
+                        f"[INFO] {date} doesn't match a correct date. CORRECT DATE FORMAT dd/mm/yyyy")
+                    date = None
             except IndexError:
                 date = None
-            logger.history(date= date) 
+            logger.history(date=date)
         elif task == 'money':
-                    print(f'[EN PROGRESO] Obteniendo dinero total ...')
-                    money = logger.get_info('money')
-                    name = logger.get_info('name')
-                    print('[INFO] Dinero total:')
-                    print(f'      [{name} - {cc}] - ${money}')
+            print(f'[EN PROGRESO] Obteniendo dinero total ...')
+            money = logger.get_info('money')
+            name = logger.get_info('name')
+            print('[INFO] Dinero total:')
+            print(f'      [{name} - {cc}] - ${money}')
         else:
             try:
                 money = int(args[2])
@@ -61,7 +69,8 @@ def main(sys_args):
             except IndexError:
                 usage()
             except ValueError:
-                print("[ERROR] Not valid data-type - CAUSE: Money isn't and integer value.")
+                print(
+                    "[ERROR] Not valid data-type - CAUSE: Money isn't and integer value.")
                 usage()
             except Exception as ex:
                 print(f'[ERROR] {ex}')

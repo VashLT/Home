@@ -1,6 +1,7 @@
 #ignore .vscode files
 
 Python/Miramonte/
+Python/Algorithms/
 *.log
 *.pdb
 *.json

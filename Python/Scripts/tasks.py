@@ -1,11 +1,12 @@
+#! Python 3.8
+# Task manager v1.0
+
 import shelve
 import os
 import time
 import sys
-from Python.Modules.Screen.Screen import Screen
+from Modules.Screen.Screen import Screen
 
-#! Python 3
-# Task manager v1.0
 
 
 class Node():
@@ -138,7 +139,7 @@ class Task_list():
 
     def update_file(self):
         path = os.path.join(os.path.expanduser(
-            '~'), 'jose2', 'Documents', 'Home', 'Python', 'Scripts', 'task data', 'Tasks')
+            '~'),'Documents', 'Home', 'Python', 'Scripts', 'task data', 'Tasks')
         with shelve.open(path) as sfile:
             sfile["Task list"] = self.head
             sfile.close()
@@ -147,7 +148,7 @@ class Task_list():
 def store_tasks(task_list):
     try:
         path = os.path.join(os.path.expanduser(
-            '~'), 'jose2', 'Documents', 'Home', 'Python', 'Scripts', 'task data', 'Tasks')
+            '~'),'Documents', 'Home', 'Python', 'Scripts', 'task data', 'Tasks')
         with shelve.open(path) as task_file:
             first_task = task_file['Task list']
 

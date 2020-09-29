@@ -7,7 +7,7 @@ from prettytable import PrettyTable
 from datetime import datetime
 from sqlite3 import Error
 from pathlib import Path
-from My_modules.Screen.Screen import Screen
+from Modules.Screen.Screen import Screen
 
 #! Python 3
 #Family handler verison 0.1, realesed 07/06/2020 
@@ -15,13 +15,13 @@ from My_modules.Screen.Screen import Screen
 """
     This script keep track of my mom's cash, using sqlite to store data
 """
-PATH = Path(Path.home()/
-'jose2'/'Documents'/'Home'/'Python'/'Scripts'/ 'tracker' /'register data')
+PATH = Path(Path.home()/'Documents'/'Home'/'Python'/'Scripts'/ 'tracker' /'register data')
 
 #for debug purposes
 if not os.path.exists(PATH):
     os.makedirs(PATH, exist_ok=True)
-logging.basicConfig(filename=str(PATH / 'debug.txt'), level = logging.DEBUG, format='%(asctime)s - %(message)s')
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(message)s',
+handlers= [logging.FileHandler(filename = str(PATH/'debug.txt'), encoding= 'utf-8', mode = 'a+')])
 # logging.disable(logging.CRITICAL)
 
 class Logger():
@@ -50,7 +50,9 @@ class Logger():
                         print('[ERROR] Something was wrong with the register.')
                         print('Thanks for using the script!')
                         sys.exit()
-
+                
+                else:
+                    sys.exit()
             except pyip.RetryLimitException:
                 print(f'[ERROR] Limit of attempts exceeded.')
     
