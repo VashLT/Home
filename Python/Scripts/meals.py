@@ -9,7 +9,7 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import ElementNotInteractableException
 
 from pathlib import Path
-from Python.Modules.Screen.Screen import Screen
+from Modules.Screen.Screen import Screen
 import logging
 import time
 import os
@@ -26,7 +26,7 @@ import configparser
 
 # INPUT None
 # OUTPUT None
-PATH = Path(Path.home() / "jose2" / "Documents" /
+PATH = Path(Path.home() / "Documents" /
             "Home" / "Python" / "Scripts" / "meal_debug")
 DEFAULT_DEBUG_PATH = PATH / "debug.txt"
 # clean debug file

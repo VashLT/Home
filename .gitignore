@@ -6,6 +6,12 @@
 *.exe
 *.txt
 *.csv
+*.jpg
+*.png
+*.dir
+*.dat
+*.bak
 .vscode
 media/
 __pycache__
+test.py

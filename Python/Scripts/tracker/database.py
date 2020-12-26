@@ -1,3 +1,4 @@
+#!Python 3
 import sqlite3, json, os
 from pathlib import Path
 import pyinputplus as pyip
@@ -64,13 +65,16 @@ class Database():
             message = pyip.inputStr(prompt='Message (Mandatory): ', limit=3)
         except pyip.RetryLimitException:
             print('[INFO] Limit of attempts exceeded.')
+            
+        if money >= 0: verbs = ["Adding", "Added"]
+        else: verbs = ["Substracting", "Substracted"]
 
-        print(f'[IN PROGRESS] Adding money ...')
+        print(f'[IN PROGRESS] {verbs[0]} money ...')
         self.cursor.execute(
             f"""UPDATE {TABLE_NAME} SET money = money + {money} WHERE cc = {cc}""")
         self.update_history(cc,message, money)
         self.db.commit()
-        print('[INFO] Added money succesfully.')
+        print(f'[INFO] {verbs[1]} money succesfully.')
         total_money = self.query(cc, 'money')
         print(f"[INFO] TOTAL Money : ${total_money}")
     
@@ -93,3 +97,5 @@ class Database():
         date_format = r"%d/%m/%Y %H:%M"
         date = datetime.now().strftime(date_format)
         self.history[cc].append((date, reason, '$' + str(money), '$' + str(total) ))
+
+

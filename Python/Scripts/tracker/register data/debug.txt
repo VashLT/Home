@@ -92,3 +92,126 @@
 2020-09-27 14:58:02,158 - Query: name and response: ('Lisaura Silva Martinez',)
 2020-09-27 16:20:45,475 - Query: name and response: ('Lisaura Silva Martinez',)
 2020-09-27 19:58:55,968 - Query: name and response: ('Lisaura Silva Martinez',)
+2020-09-30 16:09:16,583 - Query: name and response: ('Lisaura Silva Martinez',)
+2020-10-02 08:26:09,706 - Query: name and response: ('Lisaura Silva Martinez',)
+2020-10-04 13:58:13,259 - Query: name and response: ('Lisaura Silva Martinez',)
+2020-10-05 09:57:22,939 - Query: name and response: ('Lisaura Silva Martinez',)
+2020-10-06 12:03:21,278 - Query: name and response: ('Lisaura Silva Martinez',)
+2020-10-07 10:51:52,742 - Query: name and response: ('Lisaura Silva Martinez',)
+2020-10-09 07:07:45,376 - Query: name and response: ('Lisaura Silva Martinez',)
+2020-10-13 17:28:18,626 - Query: name and response: ('Lisaura Silva Martinez',)
+2020-10-13 17:29:25,813 - Query: name and response: ('Lisaura Silva Martinez',)
+2020-10-14 16:31:27,413 - Query: name and response: ('Lisaura Silva Martinez',)
+2020-10-14 16:31:36,121 - Query: name and response: ('Lisaura Silva Martinez',)
+2020-10-17 15:06:28,832 - Query: name and response: ('Lisaura Silva Martinez',)
+2020-10-18 20:33:50,507 - Query: name and response: ('Lisaura Silva Martinez',)
+2020-10-19 13:35:44,261 - Starting new HTTP connection (1): www.kammerl.de:80
+2020-10-19 13:35:44,752 - http://www.kammerl.de:80 "POST /ascii/AsciiSignature.php HTTP/1.1" 200 4158
+2020-10-19 13:35:44,853 - Query: name and response: ('Lisaura Silva Martinez',)
+2020-10-19 14:04:47,554 - Starting new HTTP connection (1): www.kammerl.de:80
+2020-10-19 14:04:47,944 - http://www.kammerl.de:80 "POST /ascii/AsciiSignature.php HTTP/1.1" 200 4158
+2020-10-20 13:07:56,210 - Starting new HTTP connection (1): www.kammerl.de:80
+2020-10-20 13:07:56,915 - http://www.kammerl.de:80 "POST /ascii/AsciiSignature.php HTTP/1.1" 200 4158
+2020-10-20 13:07:57,069 - Query: name and response: ('Lisaura Silva Martinez',)
+2020-10-20 13:08:12,134 - Starting new HTTP connection (1): www.kammerl.de:80
+2020-10-20 13:08:12,496 - http://www.kammerl.de:80 "POST /ascii/AsciiSignature.php HTTP/1.1" 200 4158
+2020-10-20 13:08:42,977 - Starting new HTTP connection (1): www.kammerl.de:80
+2020-10-20 13:08:43,346 - http://www.kammerl.de:80 "POST /ascii/AsciiSignature.php HTTP/1.1" 200 4158
+2020-10-20 13:09:06,000 - Starting new HTTP connection (1): www.kammerl.de:80
+2020-10-20 13:09:06,372 - http://www.kammerl.de:80 "POST /ascii/AsciiSignature.php HTTP/1.1" 200 4158
+2020-10-20 13:09:06,517 - Query: name and response: ('Lisaura Silva Martinez',)
+2020-10-20 17:24:51,735 - Starting new HTTP connection (1): www.kammerl.de:80
+2020-10-20 17:24:52,278 - http://www.kammerl.de:80 "POST /ascii/AsciiSignature.php HTTP/1.1" 200 4158
+2020-10-20 17:25:52,526 - Starting new HTTP connection (1): www.kammerl.de:80
+2020-10-20 17:25:52,898 - http://www.kammerl.de:80 "POST /ascii/AsciiSignature.php HTTP/1.1" 200 4158
+2020-10-20 17:25:52,993 - Query: name and response: ('Lisaura Silva Martinez',)
+2020-10-20 17:26:25,173 - Starting new HTTP connection (1): www.kammerl.de:80
+2020-10-20 17:26:25,528 - http://www.kammerl.de:80 "POST /ascii/AsciiSignature.php HTTP/1.1" 200 4158
+2020-10-22 15:25:45,850 - Starting new HTTP connection (1): www.kammerl.de:80
+2020-10-22 15:25:46,445 - http://www.kammerl.de:80 "POST /ascii/AsciiSignature.php HTTP/1.1" 200 4158
+2020-10-22 15:25:46,554 - Query: name and response: ('Lisaura Silva Martinez',)
+2020-10-22 19:57:51,458 - Starting new HTTP connection (1): www.kammerl.de:80
+2020-10-22 19:57:52,136 - http://www.kammerl.de:80 "POST /ascii/AsciiSignature.php HTTP/1.1" 200 4158
+2020-10-22 19:57:52,296 - Query: name and response: ('Lisaura Silva Martinez',)
+2020-10-22 19:58:51,149 - Starting new HTTP connection (1): www.kammerl.de:80
+2020-10-22 19:58:52,023 - http://www.kammerl.de:80 "POST /ascii/AsciiSignature.php HTTP/1.1" 200 4158
+2020-10-27 11:21:45,956 - Starting new HTTP connection (1): www.kammerl.de:80
+2020-10-27 11:21:46,517 - http://www.kammerl.de:80 "POST /ascii/AsciiSignature.php HTTP/1.1" 200 4158
+2020-10-27 11:21:46,632 - Query: name and response: ('Lisaura Silva Martinez',)
+2020-10-29 10:31:03,588 - Starting new HTTP connection (1): www.kammerl.de:80
+2020-10-29 10:31:04,187 - http://www.kammerl.de:80 "POST /ascii/AsciiSignature.php HTTP/1.1" 200 4158
+2020-10-29 10:31:04,297 - Query: name and response: ('Lisaura Silva Martinez',)
+2020-10-29 10:31:21,540 - Starting new HTTP connection (1): www.kammerl.de:80
+2020-10-29 10:31:21,918 - http://www.kammerl.de:80 "POST /ascii/AsciiSignature.php HTTP/1.1" 200 4158
+2020-11-11 14:09:23,321 - Starting new HTTP connection (1): www.kammerl.de:80
+2020-11-11 14:09:24,712 - http://www.kammerl.de:80 "POST /ascii/AsciiSignature.php HTTP/1.1" 200 4158
+2020-11-11 14:09:24,820 - Query: name and response: ('Lisaura Silva Martinez',)
+2020-11-11 14:09:39,684 - Starting new HTTP connection (1): www.kammerl.de:80
+2020-11-11 14:09:40,050 - http://www.kammerl.de:80 "POST /ascii/AsciiSignature.php HTTP/1.1" 200 4158
+2020-11-11 14:09:54,403 - Starting new HTTP connection (1): www.kammerl.de:80
+2020-11-11 14:09:54,765 - http://www.kammerl.de:80 "POST /ascii/AsciiSignature.php HTTP/1.1" 200 4158
+2020-11-11 14:10:11,061 - Starting new HTTP connection (1): www.kammerl.de:80
+2020-11-11 14:10:11,430 - http://www.kammerl.de:80 "POST /ascii/AsciiSignature.php HTTP/1.1" 200 4158
+2020-11-11 14:10:26,127 - Starting new HTTP connection (1): www.kammerl.de:80
+2020-11-11 14:10:26,492 - http://www.kammerl.de:80 "POST /ascii/AsciiSignature.php HTTP/1.1" 200 4158
+2020-11-11 14:10:26,598 - Query: name and response: ('Lisaura Silva Martinez',)
+2020-11-12 21:29:42,112 - Starting new HTTP connection (1): www.kammerl.de:80
+2020-11-12 21:29:42,646 - http://www.kammerl.de:80 "POST /ascii/AsciiSignature.php HTTP/1.1" 200 4158
+2020-11-12 21:29:42,753 - Query: name and response: ('Lisaura Silva Martinez',)
+2020-11-12 21:29:49,976 - Starting new HTTP connection (1): www.kammerl.de:80
+2020-11-12 21:29:50,359 - http://www.kammerl.de:80 "POST /ascii/AsciiSignature.php HTTP/1.1" 200 4158
+2020-11-19 12:35:29,739 - Starting new HTTP connection (1): www.kammerl.de:80
+2020-11-19 12:35:30,328 - http://www.kammerl.de:80 "POST /ascii/AsciiSignature.php HTTP/1.1" 200 4158
+2020-11-19 12:35:30,435 - Query: name and response: ('Lisaura Silva Martinez',)
+2020-11-19 12:35:43,832 - Starting new HTTP connection (1): www.kammerl.de:80
+2020-11-19 12:35:44,240 - http://www.kammerl.de:80 "POST /ascii/AsciiSignature.php HTTP/1.1" 200 4158
+2020-11-22 18:56:48,813 - Starting new HTTP connection (1): www.kammerl.de:80
+2020-11-22 18:56:49,440 - http://www.kammerl.de:80 "POST /ascii/AsciiSignature.php HTTP/1.1" 200 4158
+2020-11-26 08:50:49,938 - Starting new HTTP connection (1): www.kammerl.de:80
+2020-11-26 08:50:50,854 - http://www.kammerl.de:80 "POST /ascii/AsciiSignature.php HTTP/1.1" 200 4158
+2020-11-26 08:50:50,983 - Query: name and response: ('Lisaura Silva Martinez',)
+2020-11-26 08:51:18,466 - Starting new HTTP connection (1): www.kammerl.de:80
+2020-11-26 08:51:19,156 - http://www.kammerl.de:80 "POST /ascii/AsciiSignature.php HTTP/1.1" 200 4158
+2020-11-26 08:51:49,634 - Starting new HTTP connection (1): www.kammerl.de:80
+2020-11-26 08:51:50,223 - http://www.kammerl.de:80 "POST /ascii/AsciiSignature.php HTTP/1.1" 200 4158
+2020-11-27 08:58:36,888 - Starting new HTTP connection (1): www.kammerl.de:80
+2020-11-27 08:58:37,261 - http://www.kammerl.de:80 "POST /ascii/AsciiSignature.php HTTP/1.1" 200 4158
+2020-12-02 12:52:50,152 - Starting new HTTP connection (1): www.kammerl.de:80
+2020-12-02 12:52:50,704 - http://www.kammerl.de:80 "POST /ascii/AsciiSignature.php HTTP/1.1" 200 4158
+2020-12-04 07:32:36,395 - Starting new HTTP connection (1): www.kammerl.de:80
+2020-12-04 07:32:36,958 - http://www.kammerl.de:80 "POST /ascii/AsciiSignature.php HTTP/1.1" 200 4158
+2020-12-04 07:32:37,065 - Query: name and response: ('Lisaura Silva Martinez',)
+2020-12-04 07:33:06,369 - Starting new HTTP connection (1): www.kammerl.de:80
+2020-12-04 07:33:06,728 - http://www.kammerl.de:80 "POST /ascii/AsciiSignature.php HTTP/1.1" 200 4158
+2020-12-04 07:33:17,837 - Starting new HTTP connection (1): www.kammerl.de:80
+2020-12-04 07:33:18,219 - http://www.kammerl.de:80 "POST /ascii/AsciiSignature.php HTTP/1.1" 200 4158
+2020-12-04 07:40:06,146 - Starting new HTTP connection (1): www.kammerl.de:80
+2020-12-04 07:40:06,522 - http://www.kammerl.de:80 "POST /ascii/AsciiSignature.php HTTP/1.1" 200 4158
+2020-12-04 07:40:26,140 - Starting new HTTP connection (1): www.kammerl.de:80
+2020-12-04 07:40:26,498 - http://www.kammerl.de:80 "POST /ascii/AsciiSignature.php HTTP/1.1" 200 4158
+2020-12-04 07:40:26,597 - Query: name and response: ('Lisaura Silva Martinez',)
+2020-12-12 22:07:49,454 - Starting new HTTP connection (1): www.kammerl.de:80
+2020-12-12 22:07:50,277 - http://www.kammerl.de:80 "POST /ascii/AsciiSignature.php HTTP/1.1" 200 4158
+2020-12-12 22:07:50,384 - Query: name and response: ('Lisaura Silva Martinez',)
+2020-12-12 22:08:02,853 - Starting new HTTP connection (1): www.kammerl.de:80
+2020-12-12 22:08:03,227 - http://www.kammerl.de:80 "POST /ascii/AsciiSignature.php HTTP/1.1" 200 4158
+2020-12-12 22:08:20,190 - Starting new HTTP connection (1): www.kammerl.de:80
+2020-12-12 22:08:20,572 - http://www.kammerl.de:80 "POST /ascii/AsciiSignature.php HTTP/1.1" 200 4158
+2020-12-13 10:37:43,774 - Starting new HTTP connection (1): www.kammerl.de:80
+2020-12-13 10:37:44,342 - http://www.kammerl.de:80 "POST /ascii/AsciiSignature.php HTTP/1.1" 200 4158
+2020-12-13 19:58:25,269 - Starting new HTTP connection (1): www.kammerl.de:80
+2020-12-13 19:58:25,808 - http://www.kammerl.de:80 "POST /ascii/AsciiSignature.php HTTP/1.1" 200 4158
+2020-12-16 13:16:50,615 - Starting new HTTP connection (1): www.kammerl.de:80
+2020-12-16 13:16:51,189 - http://www.kammerl.de:80 "POST /ascii/AsciiSignature.php HTTP/1.1" 200 4158
+2020-12-16 13:16:51,296 - Query: name and response: ('Lisaura Silva Martinez',)
+2020-12-16 13:17:13,003 - Starting new HTTP connection (1): www.kammerl.de:80
+2020-12-16 13:17:13,358 - http://www.kammerl.de:80 "POST /ascii/AsciiSignature.php HTTP/1.1" 200 4158
+2020-12-16 13:17:25,403 - Starting new HTTP connection (1): www.kammerl.de:80
+2020-12-16 13:17:25,760 - http://www.kammerl.de:80 "POST /ascii/AsciiSignature.php HTTP/1.1" 200 4158
+2020-12-24 06:51:49,530 - Starting new HTTP connection (1): www.kammerl.de:80
+2020-12-24 06:51:50,094 - http://www.kammerl.de:80 "POST /ascii/AsciiSignature.php HTTP/1.1" 200 4158
+2020-12-24 06:51:50,203 - Query: name and response: ('Lisaura Silva Martinez',)
+2020-12-24 06:51:57,588 - Starting new HTTP connection (1): www.kammerl.de:80
+2020-12-24 06:51:57,966 - http://www.kammerl.de:80 "POST /ascii/AsciiSignature.php HTTP/1.1" 200 4158
+2020-12-24 22:15:47,688 - Starting new HTTP connection (1): www.kammerl.de:80
+2020-12-24 22:15:48,221 - http://www.kammerl.de:80 "POST /ascii/AsciiSignature.php HTTP/1.1" 200 4158
