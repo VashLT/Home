@@ -1,22 +1,34 @@
-import shelve
-import random
-import pyperclip
-import os
-import sys
-import re
-import pyinputplus as pyip
-from db import Database
-from utils import Utils
-from Modules.Debug.debugging import Logger
-import traceback
-
-
 #! Python 3.7.4
-# Controller class
+
 """
 This file contains the controller class which takes care of main tasks such as hashing
 passwords, getting users from the db, and so on.
         """
+
+import shelve
+
+import random
+
+import pyperclip
+
+import os
+
+import sys
+
+import re
+
+import pyinputplus as pyip
+
+from db import Database
+
+from utils import Utils
+
+from Modules.Debug.debugging import Logger
+
+import traceback
+
+
+# Controller class
 
 DATA_PATH = os.path.join(os.getenv("HOME"), "Home", "Python", "Scripts", "PW", "data")
 LOG_FILE_PATH = os.path.join(DATA_PATH, "debug.log")

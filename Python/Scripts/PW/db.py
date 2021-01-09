@@ -1,19 +1,26 @@
-#!Python 3
+# Python 3.7.4
+
+# Database API
 import sqlite3
+
 import json
+
 import os
+
 from pathlib import Path
+
 import pyinputplus as pyip
+
 from datetime import datetime
+
 from Modules.Debug.debugging import Logger
+
 import traceback
 
 
 STORAGE_PATH = os.path.join(os.getenv("HOME"),"Home", "Python", "Scripts", "PW", "data")
 LOG_FILE_PATH = os.path.join(STORAGE_PATH, "debug.log")
 HISTORY_FILE = os.path.join(STORAGE_PATH, "history.json")
-
-# TODO: implement traceback for debugging purposes
 
 
 class Database(sqlite3.Connection):
