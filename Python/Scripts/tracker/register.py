@@ -15,7 +15,7 @@ from Modules.Screen.Screen import Screen
 """
     This script keep track of my mom's cash, using sqlite to store data
 """
-PATH = Path(Path.home()/'Documents'/'Home'/'Python'/'Scripts'/ 'tracker' /'register data')
+PATH = Path(Path.home()/'Home'/'Python'/'Scripts'/ 'tracker' /'register data')
 
 #for debug purposes
 if not os.path.exists(PATH):

@@ -26,8 +26,7 @@ import configparser
 
 # INPUT None
 # OUTPUT None
-PATH = Path(Path.home() / "Documents" /
-            "Home" / "Python" / "Scripts" / "meal_debug")
+PATH = Path(Path.home() / "Home" / "Python" / "Scripts" / "meal_debug")
 DEFAULT_DEBUG_PATH = PATH / "debug.txt"
 # clean debug file
 os.remove(DEFAULT_DEBUG_PATH)

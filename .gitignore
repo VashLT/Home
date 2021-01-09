@@ -1,5 +1,5 @@
 #ignore .vscode files
-
+None/
 *.log
 *.pdb
 *.json
@@ -11,6 +11,7 @@
 *.dir
 *.dat
 *.bak
+*.mp4
 .vscode
 media/
 __pycache__

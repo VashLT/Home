@@ -78,7 +78,7 @@ class WhatsApp(webdriver.Chrome):
         chrome_profile = os.path.join(os.getenv(
             "HOME"), "AppData", "Local", "Google", "Chrome", "User Data", "Profile 1")
         session_path = os.path.join(
-            os.getenv("HOME"), "Documents", "Python", "Scripts", "Tutorer")
+            os.getenv("HOME"), "Home", "Python", "Scripts", "Tutorer")
 
         for varname, value in kwargs.items():
             if varname is "opts":
