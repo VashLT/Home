@@ -1,5 +1,6 @@
 #ignore .vscode files
-None/
+
+# common file extensions
 *.log
 *.pdb
 *.json
@@ -13,6 +14,11 @@ None/
 *.bak
 *.mp4
 .vscode
+
+# folders
 media/
 __pycache__
+None/
+tests
+data
 test.py
