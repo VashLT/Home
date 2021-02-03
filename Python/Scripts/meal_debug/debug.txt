@@ -1,2 +1,0 @@
-2021-01-09 15:33:08,965 - Starting new HTTP connection (1): www.kammerl.de:80
-2021-01-09 15:33:09,657 - http://www.kammerl.de:80 "POST /ascii/AsciiSignature.php HTTP/1.1" 200 4156

@@ -22,14 +22,13 @@ class Interface(object):
 
     def __del__(self):
         print(f"[IN PROGRESS] Exciting ...")
-        sleep(1)
 
     @staticmethod
     def usage():
         print(f"""
             Usage:
                 -> $pw --list | -l: List all the store password references
-                -> $pw --save | -s [password]: If not password as argument, then store clipboard data as a pw and prompt for a password reference.
+                -> $pw --save | -s [password | -cb]: If not password as argument, then store clipboard data as a pw and prompt for a password reference.
                 -> $pw --change | -c [pw_ref]: if not pw_ref, then user is prompted for the reference as well as the new password
                 -> $pw pw_ref: Verify user and copy pw to clipboard if matches, otherwise will prompt to select the underlying pw_ref based on better
                 matches to the input ref.
@@ -47,7 +46,6 @@ class Interface(object):
             index = 0
             while index < len(args):
                 self.sc.display()
-                sleep(1)
                 arg = args[index]
                 self.log.info(f"Reading arg {arg}")
                 if arg and not "-" in arg:
@@ -57,7 +55,8 @@ class Interface(object):
                     self.log.info(f"Calling list_pws") 
                     self.ctrl.list_pws()
                 elif arg == "--save" or arg == "-s":
-                    self.ctrl.save_pw(pw= Utils.check_next_arg(args, index))
+                    cfc = "--clipboard" in args or "-cb" in args
+                    self.ctrl.save_pw(pw= Utils.check_next_arg(args, index), copy_from_clipboard=cfc)
                     index += 1
                 elif arg == "--change" or arg == "-c":
                     self.ctrl.change_pw(pw=Utils.check_next_arg(args, index))

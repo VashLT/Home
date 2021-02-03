@@ -278,9 +278,9 @@ class Controller(object):
             print(
                 f"[ERROR] An exception has ocurred. check {LOG_FILE_PATH} for more info.")
 
-    def save_pw(self, pw=None):
+    def save_pw(self, pw=None, copy_from_clipboard=True):
         try:
-            if not pw:
+            if not pw and copy_from_clipboard:
                 print("[IN PROGRESS] Copying password from clipboard ...")
                 pw = pyperclip.paste()
                 if pw == '':
@@ -290,6 +290,8 @@ class Controller(object):
                         print("[INFO] No passwords were saved.")
                         return
                     pw = Utils.input_pw()
+            elif not pw:
+                pw = Utils.input_pw()
             pw_ref = Utils.input_ref(max_len=32)
             print("[IN PROGRESS] Storing password ...")
             pw_id = Utils.autoincrement_id(self.db, table_name="passwords")

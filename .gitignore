@@ -20,5 +20,7 @@ media/
 __pycache__
 None/
 tests
+Miramonte
+beautifiers
 data
 test.py
