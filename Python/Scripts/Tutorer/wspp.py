@@ -13,6 +13,11 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 
+PATH = os.path.join(
+    os.getenv("HOME"), "Home", "Python", "Scripts", "Tutorer")
+CHROME_PROFILE = os.path.join(os.getenv(
+    "HOME"), "AppData", "Local", "Google", "Chrome", "User Data", "Profile 1")
+
 
 class WhatsAppUtils(object):
     @staticmethod
@@ -75,20 +80,15 @@ class WhatsApp(webdriver.Chrome):
 
     @WhatsAppUtils.decorate_varnames
     def digest_args(self, *args, **kwargs):
-        chrome_profile = os.path.join(os.getenv(
-            "HOME"), "AppData", "Local", "Google", "Chrome", "User Data", "Profile 1")
-        session_path = os.path.join(
-            os.getenv("HOME"), "Home", "Python", "Scripts", "Tutorer")
-
         for varname, value in kwargs.items():
             if varname is "opts":
                 # "--headless"]
                 [self.options.add_argument(arg) for arg in value]
             elif varname is "session_path":
-                session_path = value
+                PATH = value
             elif varname is "keep_open" and not value:
                 self.browser_thread.start()
-        self.options.add_argument(f"user-data-dir={session_path}")
+        self.options.add_argument(f"user-data-dir={PATH}")
 
     @WhatsAppUtils.handle_exit
     def send_messages(self, messages):
