@@ -13,6 +13,8 @@
 *.dat
 *.bak
 *.mp4
+*.db
+C,C++/Book/
 .vscode
 
 # folders

@@ -83,7 +83,7 @@ class Tutorer(object):
                 time_delay = float(self.META['screenshot delay'])
                 img_path = self.get_ss_path()
                 self.take_screenshot(img_path, time_delay - time_delay / 1.25)
-                self.send_image(img_path)
+                self.send_image(img_path, entry=True)
 
             elif self.test_mode and any([arg in args for arg in ["-i", "--image"]]):
                 self.suffix = "Test"
@@ -130,7 +130,7 @@ class Tutorer(object):
             time_delay = float(self.META['screenshot delay'])
             img_path = self.get_ss_path()
             self.take_screenshot(img_path, time_delay - time_delay / 1.25)
-            self.send_image(img_path, open_browser=True)
+            self.send_image(img_path, open_browser=True, entry=False)
 
         except KeyboardInterrupt:
             print(f"[INFO] An interruption was detected, exiting ...")
@@ -186,16 +186,22 @@ class Tutorer(object):
             f"[INFO] Screenshot was taken successfully. Stored at {store_path}")
         time.sleep(1)
 
-    def send_image(self, path, open_browser=False, delay=3):
+    def send_image(self, path, open_browser=False, delay=3, entry=True):
         assert hasattr(self, "ss_path")
         if open_browser:
-            self.WhatsApp.reopen()
+            self.WhatsApp = self.WhatsApp.reopen()
         to = self.TUTOR['juliana whatsapp']
         if self.test_mode:
             to = self.META['test whatsapp']
+            msg = "Testing ..."
+        elif entry and not self.test_mode:
+            msg = "Hola juliana, adjunto el pantallazo de entrada: "
+        else:
+            msg = "Adjunto el pantallazo de salida: "
 
-        self.WhatsApp.send_messages({to: {"image": path}})
-        time.sleep(delay)
+        self.WhatsApp.send_messages(
+            {to: {"message": msg, "image": path}})
+        time.sleep(delay * 2)
         self.WhatsApp.close()
 
     def set_time_interval(self, interval):
@@ -203,20 +209,21 @@ class Tutorer(object):
         self.time = datetime.datetime.now() + datetime.timedelta(0, interval*60)
         return self.time
 
-    @staticmethod
+    @ staticmethod
     def handle_repeat_file(path, suffix=""):
         ans = pyip.inputYesNo(
             prompt=f"Do you want to overwrite it? (y/n)\n", yesVal="y", noVal="n")
         if ans == "n":
             rename_suffix = 1
+            old_suffix = suffix
             while os.path.exists(path):
-                path = path.replace(f"{suffix}.jpg", "") + \
-                    f"{rename_suffix} {suffix}.jpg"
-                suffix = f"{rename_suffix} {suffix}"
+                new_suffix = " ".join([str(rename_suffix), suffix])
+                path = path.replace(old_suffix, new_suffix)
+                old_suffix = new_suffix
                 rename_suffix += 1
         return path
 
-    @staticmethod
+    @ staticmethod
     def copy_image_to_clipboard(im_path):
         im = Image.open(im_path)
         with BytesIO() as output:
@@ -229,14 +236,14 @@ class Tutorer(object):
         win32clipboard.CloseClipboard()
         print("[INFO] Image ready to be sent")
 
-    @staticmethod
+    @ staticmethod
     def open_pages(pages):
         pages.insert(0, "Chrome")
         print(f"[IN PROGRESS] Opening {len(pages)} pages ...")
         for page in pages:
             os.system(f"start /W /MAX {page}")
 
-    @staticmethod
+    @ staticmethod
     def beep(sound_file, times=1, freq=0.1):
         try:
             it = 0
@@ -248,7 +255,7 @@ class Tutorer(object):
             print(f"{sound_file} is not a valid sound file.")
             return
 
-    @staticmethod
+    @ staticmethod
     def greeting_time():
         hour = datetime.datetime.now().hour
         if hour >= 12 and hour <= 19:
@@ -261,3 +268,8 @@ class Tutorer(object):
 
 if __name__ == "__main__":
     Tutorer(*sys.argv)
+    # Debug
+    # Tutorer("", "-t")
+    # path = os.path.join(os.getenv("HOME"), "Pictures", "U images",
+    #                     "SEA", "Evidencias 2020-2", "2021-03-12 Test.jpg")
+    # Tutorer.handle_repeat_file(path, suffix="Test")
