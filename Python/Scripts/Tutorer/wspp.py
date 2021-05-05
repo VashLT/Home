@@ -13,11 +13,6 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 
-PATH = os.path.join(
-    os.getenv("HOME"), "Home", "Python", "Scripts", "Tutorer")
-CHROME_PROFILE = os.path.join(os.getenv(
-    "HOME"), "AppData", "Local", "Google", "Chrome", "User Data", "Profile 1")
-
 
 class WhatsAppUtils(object):
     @staticmethod
@@ -80,6 +75,10 @@ class WhatsApp(webdriver.Chrome):
 
     @WhatsAppUtils.decorate_varnames
     def digest_args(self, *args, **kwargs):
+        PATH = os.path.join(
+            os.getenv("HOME"), "Home", "Python", "Scripts", "Tutorer")
+        CHROME_PROFILE = os.path.join(os.getenv(
+            "HOME"), "AppData", "Local", "Google", "Chrome", "User Data", "Profile 1")
         for varname, value in kwargs.items():
             if varname is "opts":
                 # "--headless"]

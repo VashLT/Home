@@ -30,7 +30,8 @@ import traceback
 
 # Controller class
 
-DATA_PATH = os.path.join(os.getenv("HOME"), "Home", "Python", "Scripts", "PW", "data")
+DATA_PATH = os.path.join(os.getenv("HOME"), "Home",
+                         "Python", "Scripts", "PW", "data")
 LOG_FILE_PATH = os.path.join(DATA_PATH, "debug.log")
 
 
@@ -57,11 +58,6 @@ class InputException(ControllerException):
     pass
 
 
-class ImpossibleExepction(ControllerException):
-    """
-        This exception is raised in weird cases.
-    """
-    pass
 
 class Controller(object):
     def __init__(self, screen):
@@ -82,30 +78,35 @@ class Controller(object):
         try:
             while True:
                 self.sc.display()
-                user = input(f"[INPUT] Enter username: (If new user press Enter to register)\n")
+                user = input(
+                    f"[INPUT] Enter username: (If new user press Enter to register)\n")
                 if user == '':
                     self._register_user()
                     continue
-                pin = Utils.input_pin(prompt="[INPUT] Enter PIN: \n", length = 4, attempts = 3)
+                pin = Utils.input_pin(
+                    prompt="[INPUT] Enter PIN: \n", length=4, attempts=3)
                 if user in self.__users:
                     if self.check_user(user, pin):
                         self.__username = user
                         break
-                    print(f"[INFO] Given username and PIN doesn't match. Please try again ...")
+                    print(
+                        f"[INFO] Given username and PIN doesn't match. Please try again ...")
                 else:
                     print(f"[INFO] Ups. We have detected you are not a user yet.")
-                    ans = pyip.inputYesNo(f"[INPUT] Do you want to register? (y/n)\n", yesVal='y', noVal='n', limit=3)
+                    ans = pyip.inputYesNo(
+                        f"[INPUT] Do you want to register? (y/n)\n", yesVal='y', noVal='n', limit=3)
                     if ans != 'y':
                         raise NotRegisterUserException()
                     self._register_user()
             self.__user_id = self.__users[self.__username][1]
-        
+
         except pyip.RetryLimitException:
             print(f"[ERROR] Excedeed limit of attempts")
         except NotRegisterUserException:
             return
         except Exception as ex:
-            self.log.exception( f"TYPE: <{type(ex)}> - {ex}\n" , traceback.format_exc())
+            self.log.exception(
+                f"TYPE: <{type(ex)}> - {ex}\n", traceback.format_exc())
             print(
                 f"[ERROR] An exception has ocurred. check {LOG_FILE_PATH} for more info.")
 
@@ -116,10 +117,11 @@ class Controller(object):
         assert hasattr(self, f"_{type(self).__name__}__user_id")
         try:
             return self.db.query(
-                "passwords", attrs, many = True,user_id = self.__user_id)
-            
+                "passwords", attrs, many=True, user_id=self.__user_id)
+
         except Exception as ex:
-            self.log.exception( f"TYPE: <{type(ex)}> - {ex}\n" , traceback.format_exc())
+            self.log.exception(
+                f"TYPE: <{type(ex)}> - {ex}\n", traceback.format_exc())
             print(
                 f"[ERROR] An exception has ocurred. check {LOG_FILE_PATH} for more info.")
 
@@ -130,25 +132,27 @@ class Controller(object):
         """
         try:
             return self.db.query(
-                "users", attrs, user_id = self.__user_id
+                "users", attrs, user_id=self.__user_id
             )
         except Exception as ex:
-            self.log.exception( f"TYPE: <{type(ex)}> - {ex}\n" , traceback.format_exc())
+            self.log.exception(
+                f"TYPE: <{type(ex)}> - {ex}\n", traceback.format_exc())
             print(
                 f"[ERROR] An exception has ocurred. check {LOG_FILE_PATH} for more info.")
 
-    def _get_pw(self, pw_ref, hashed = False):
+    def _get_pw(self, pw_ref, hashed=False):
         assert hasattr(self, f"_{type(self).__name__}__user_id")
         try:
             encrypted_pw = self.db.query(
-                "passwords", "pw_hash", user_id = self.__user_id, pw_ref = pw_ref
+                "passwords", "pw_hash", user_id=self.__user_id, pw_ref=pw_ref
             )[0]
             if hashed:
                 return encrypted_pw
             else:
                 return Utils.decrypt(encrypted_pw)
         except Exception as ex:
-            self.log.exception( f"TYPE: <{type(ex)}> - {ex}\n" , traceback.format_exc())
+            self.log.exception(
+                f"TYPE: <{type(ex)}> - {ex}\n", traceback.format_exc())
             print(
                 f"[ERROR] An exception has ocurred. check {LOG_FILE_PATH} for more info.")
 
@@ -164,7 +168,8 @@ class Controller(object):
         except pyip.RetryLimitException:
             raise InputException()
         except Exception as ex:
-            self.log.exception( f"TYPE: <{type(ex)}> - {ex}\n" , traceback.format_exc())
+            self.log.exception(
+                f"TYPE: <{type(ex)}> - {ex}\n", traceback.format_exc())
             print(
                 f"[ERROR] An exception has ocurred. check {LOG_FILE_PATH} for more info.")
 
@@ -178,7 +183,8 @@ class Controller(object):
         try:
             return list(self.__users.keys())
         except Exception as ex:
-            self.log.exception( f"TYPE: <{type(ex)}> - {ex}\n" , traceback.format_exc())
+            self.log.exception(
+                f"TYPE: <{type(ex)}> - {ex}\n", traceback.format_exc())
             print(
                 f"[ERROR] An exception has ocurred. check {LOG_FILE_PATH} for more info.")
 
@@ -204,7 +210,8 @@ class Controller(object):
     @store_user
     def _register_user(self):
         """ prompt user for username and pin"""
-        user = Utils.input_user(self, prompt = f"[INPUT] Enter username: \n", attempts=3, max_len = 32)
+        user = Utils.input_user(
+            self, prompt=f"[INPUT] Enter username: \n", attempts=3, max_len=32)
         while True:
             pin = Utils.input_pin(f"[INPUT] Enter user PIN: \n")
             re_pin = Utils.input_pin(f"[INPUT] Confirm your PIN: \n")
@@ -223,11 +230,12 @@ class Controller(object):
                 columns=["PW ref name", "Register date"],
                 title=f"{username} Passwords",
                 data=data,
-                date_index= 1
+                date_index=1
             )
             print(table)
         except Exception as ex:
-            self.log.exception( f"TYPE: <{type(ex)}> - {ex}\n" , traceback.format_exc())
+            self.log.exception(
+                f"TYPE: <{type(ex)}> - {ex}\n", traceback.format_exc())
             print(
                 f"[ERROR] An exception has ocurred. check {LOG_FILE_PATH} for more info.")
 
@@ -255,7 +263,7 @@ class Controller(object):
                         f"[INPUT] Reference number: ", max=len(data), min=1, limit=3)
                     pw_ref = data[opt - 1][0]
             return pw_ref
-            
+
         except Exception as ex:
             self.log.exception(
                 f"TYPE: <{type(ex)}> - {ex}\n", traceback.format_exc())
@@ -269,12 +277,17 @@ class Controller(object):
         """
         try:
             pw_ref = self._search_ref(arg)
+            if not pw_ref:
+                print(f"[INFO] No password matched for {arg}.")
+                return
+
             print(
                 f"[IN PROGRESS] Copying to clipboard pw associated with {pw_ref} ...")
             pyperclip.copy(self._get_pw(pw_ref))
             print(f"[INFO] Password succesfully copied!.")
         except Exception as ex:
-            self.log.exception( f"TYPE: <{type(ex)}> - {ex}\n" , traceback.format_exc())
+            self.log.exception(
+                f"TYPE: <{type(ex)}> - {ex}\n", traceback.format_exc())
             print(
                 f"[ERROR] An exception has ocurred. check {LOG_FILE_PATH} for more info.")
 
@@ -285,7 +298,8 @@ class Controller(object):
                 pw = pyperclip.paste()
                 if pw == '':
                     print("[ALERT] No password was found in clipboard.")
-                    ans = pyip.inputYesNo("Do you want to input the password? (y/n): \n", yesVal='y', noVal='n')
+                    ans = pyip.inputYesNo(
+                        "Do you want to input the password? (y/n): \n", yesVal='y', noVal='n')
                     if ans != 'y':
                         print("[INFO] No passwords were saved.")
                         return
@@ -300,11 +314,12 @@ class Controller(object):
                 return
             print(f"[INFO] Password succesfully stored!")
         except Exception as ex:
-            self.log.exception( f"TYPE: <{type(ex)}> - {ex}\n" , traceback.format_exc())
+            self.log.exception(
+                f"TYPE: <{type(ex)}> - {ex}\n", traceback.format_exc())
             print(
                 f"[ERROR] An exception has ocurred. check {LOG_FILE_PATH} for more info.")
-    
-    #TODO: decide whether password can be change just by user credentials and ref, or if it's necessary input the old password
+
+    # TODO: decide whether password can be change just by user credentials and ref, or if it's necessary input the old password
     def change_pw(self, ref=None, pw=None):
         try:
             while True:
@@ -314,13 +329,15 @@ class Controller(object):
                         max_len=32)
                 pw_ref = self._search_ref(ref)
                 if not pw_ref:
-                    print(f"[INFO] The following is the {self.__username}'s list of references")
+                    print(
+                        f"[INFO] The following is the {self.__username}'s list of references")
                     self.list_pws()
                     ref = None
                 else:
                     break
             if not pw:
-                [print(f"[{index}] {opt}") for index, opt in enumerate(["Copy from clipboard", "Input password"], 1)]
+                [print(f"[{index}] {opt}") for index, opt in enumerate(
+                    ["Copy from clipboard", "Input password"], 1)]
                 opt = pyip.inputInt(f"[INPUT] Option: ", max=2, min=1, limit=3)
                 if opt == 1:
                     print("[IN PROGRESS] Copying password from clipboard ...")
@@ -332,18 +349,19 @@ class Controller(object):
                         if ans != 'y':
                             print("[INFO] No passwords were saved.")
                             return
-                        pw = Utils.input_pw(prompt="[INPUT] Enter the new password: \n")
+                        pw = Utils.input_pw(
+                            prompt="[INPUT] Enter the new password: \n")
                 elif opt == 2:
                     pw = Utils.input_pw(
                         prompt="[INPUT] Enter the new password: \n")
             print("[IN PROGRESS] Storing password ...")
             if not self.db.change_pw(self.__user_id,
-                                    self._get_pw(pw_ref, hashed=True),
-                                    Utils.encrypt(pw)):
+                                     self._get_pw(pw_ref, hashed=True),
+                                     Utils.encrypt(pw)):
                 print(f"[INFO] No passwords were saved.")
                 return
             print(f"[INFO] Password succesfully stored!")
-            
+
         except Exception as ex:
             self.log.exception(
                 f"TYPE: <{type(ex)}> - {ex}\n", traceback.format_exc())
@@ -358,11 +376,8 @@ class Controller(object):
             if not self.db.exists(pos_id):
                 return pos_id
             it += 1
-        raise ImpossibleExepction()
 
     def check_user(self, user, pin):
         if not user in self.__users or pin != self.__users[user][0]:
             return False
         return True
-
-        

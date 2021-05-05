@@ -63,7 +63,7 @@ class Interface(object):
                 sleep(2)
                 index += 1
 
-        except Exception as ex:
+        except Exception:
             traceback.print_exc(file=sys.stdout)
 
 

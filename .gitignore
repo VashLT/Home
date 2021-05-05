@@ -1,4 +1,5 @@
 #ignore .vscode files
+*.db
 
 # common file extensions
 *.log

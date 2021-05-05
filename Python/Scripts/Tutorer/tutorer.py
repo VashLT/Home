@@ -78,8 +78,9 @@ class Tutorer(object):
         try:
             Screen("Tutorer", version="0.1.0").display()
             self.get_times()
-            if any([arg in args for arg in ["-o", "--out"]]):
+            if any([arg in args for arg in ["-o", "--out", "-e", "--exit"]]):
                 self.suffix = "Ex"
+                self.msg = "Adjunto el pantallazo de salida: "
                 time_delay = float(self.META['screenshot delay'])
                 img_path = self.get_ss_path()
                 self.take_screenshot(img_path, time_delay - time_delay / 1.25)
@@ -87,11 +88,13 @@ class Tutorer(object):
 
             elif self.test_mode and any([arg in args for arg in ["-i", "--image"]]):
                 self.suffix = "Test"
+                self.msg = "Testing ..."
                 img_path = self.get_ss_path()
                 self.take_screenshot(img_path, 1)
                 self.send_image(img_path)
             else:
                 self.suffix = "En"
+                self.msg = "Adjunto el pantallazo de entrada: "
                 self.setup()
                 self.wait_end_session()
 
@@ -156,7 +159,14 @@ class Tutorer(object):
         print("[INFO] Message ready to be posted")
         img_path = self.get_ss_path()
         self.take_screenshot(img_path, float(self.META['screenshot delay']))
-        self.send_image(img_path)
+        try:
+            self.send_image(img_path)
+        except Exception as ex:
+            self.log.exception(
+                f"TYPE: <{type(ex)}> - {ex}\n", traceback.format_exc())
+            print(
+                f"Couldn't send image. Check {self.log_path} for more info.")
+            return
 
     def get_times(self):
         current_time = datetime.datetime.now()
@@ -193,14 +203,9 @@ class Tutorer(object):
         to = self.TUTOR['juliana whatsapp']
         if self.test_mode:
             to = self.META['test whatsapp']
-            msg = "Testing ..."
-        elif entry and not self.test_mode:
-            msg = "Hola juliana, adjunto el pantallazo de entrada: "
-        else:
-            msg = "Adjunto el pantallazo de salida: "
 
         self.WhatsApp.send_messages(
-            {to: {"message": msg, "image": path}})
+            {to: {"message": self.msg, "image": path}})
         time.sleep(delay * 2)
         self.WhatsApp.close()
 

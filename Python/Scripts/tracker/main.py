@@ -1,10 +1,12 @@
 import os
 import sys
+
 from datetime import datetime
+
+sys.path.append('F:\Programming\Python\Modules')
+
 from register import Logger
 from register import PATH
-
-#! Python 3
 
 """
     This script keep track of cash transactions
@@ -12,17 +14,17 @@ from register import PATH
 
 
 def usage():
-    usage = """
+    use = """
         Usage: $register id/cedula (add/substract) 'amount money' 
                $register id/cedula log (date ~optional) - Print all the additions and deletions 
         """
-    print(usage)
+    print(use)
 
 
 def check_date_format(date):
     date_format = r'%d/%m/%Y'
     try:
-        # check given arg is a right date-format
+        # check given arg is a right date-formatted
         datetime.strptime(date, date_format)
         return True
 
