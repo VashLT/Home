@@ -1,101 +1,132 @@
 #!Python 3
-import sqlite3, json, os
+import os
+import traceback
 from pathlib import Path
+from typing import List, Union
 import pyinputplus as pyip
+
+from bson.objectid import ObjectId
+from pymongo.results import InsertOneResult, UpdateResult
+from pymongo.collection import Collection
+from pymongo import MongoClient
+from dotenv import load_dotenv
 from datetime import datetime
 
-TABLE_NAME = 'users'
+load_dotenv()
 
-class Database():
-    def __init__(self, name):
-        self.db = sqlite3.connect(name)
-        self.cursor = self.db.cursor()
-        self.init_db()
-    
-    def __del__(self):
-        assert hasattr(self, 'history')
-        #save file and database
-        self.db.close()
-        with open('history.json','w') as json_file:
-            json.dump(self.history, json_file, indent=2, sort_keys=True )
-    
-    def check(self, cc):
-        """ check existence of an user by their cc"""
-        self.cursor.execute(f"""
-            SELECT EXISTS( SELECT name FROM {TABLE_NAME} WHERE cc = {cc})
-            """)
-        response = self.cursor.fetchone()[0]
-        # 1 exists, otherwise not exists
-        if response == 1:
-            return True
-        else:
-            return False    
-    
-    def init_db(self):
-        #check whether db has users table or not      
-        self.cursor.execute( f"""CREATE TABLE IF NOT EXISTS {TABLE_NAME} 
-                (
-                    cc integer PRIMARY KEY,
-                    name text NOT NULL,
-                    money integer DEFAULT 0
-                )""")
+MONGO_URI = f"mongodb://vashlt:{os.getenv('DB_PASSWORD')}@cluster0-shard-00-00.0co7e.mongodb.net:27017,cluster0-shard-00-01.0co7e.mongodb.net:27017,cluster0-shard-00-02.0co7e.mongodb.net:27017/{os.getenv('DB_NAME')}?replicaSet=atlas-dwxv6c-shard-0&ssl=true&authSource=admin"
+
+COLLECTION_NAME = "users"
+
+
+class Database:
+    def __init__(self):
+        self._client = MongoClient(MONGO_URI)
+        self._db = self._client.get_database()
+
+    def get_user(self, cc: int) -> Union[dict, bool]:
+        collection: Collection = self._db[COLLECTION_NAME]
         try:
-        #init or open json file that store the history
-            with open("history.json", encoding='utf-8') as json_file:
-                self.history = json.load(json_file)
-                
-        except FileNotFoundError: #first creation of the file
-            self.history = {}
-        except Exception as ex:
-            print(f"[ERROR] Couldn't open the history file - {ex}")
-    
-    def register(self, cc, name, money):
-        try:
-            self.cursor.execute( """INSERT INTO users (cc, name, money)
-                    VALUES (?,?,?)
-                """, (cc, name, money) )
-            return True
-        except Exception as ex:
-            print(f'[ERROR] {ex}')
+            return collection.find_one({"cc": cc})
+        except:
+            print(f"[db.get_user] failed!\n {traceback.print_exc()}")
             return False
-    
-    def add_money(self,cc, money):
-        """ add money and message """
+
+    def exists(self, cc: int) -> bool:
+        """check existence of an user by their cc"""
+        collection = self._db[COLLECTION_NAME]
         try:
-            message = pyip.inputStr(prompt='Message (Mandatory): ', limit=3)
+            return collection.count_documents({"cc": int(cc)}, limit=1) > 0
+
+        except:
+            print(f"[db.exists] failed!\n {traceback.print_exc()}")
+            return False
+
+    def register(
+        self, cc: int, name: str, money: float = 0
+    ) -> Union[InsertOneResult, bool]:
+        collection: Collection = self._db[COLLECTION_NAME]
+
+        try:
+            insert_dict = {
+                "cc": cc,
+                "name": name,
+                "money": money,
+                "joined_date": datetime.now(),
+                "transactions": [],
+            }
+            result = collection.insert_one(insert_dict)
+
+        except:
+            print(f"[db.register] failed!\n {traceback.print_exc()}")
+            return False
+
+        return result
+
+    def add_money(self, cc: int, money: float) -> Union[UpdateResult, bool]:
+        """add money and message"""
+        collection: Collection = self._db[COLLECTION_NAME]
+        try:
+            message = pyip.inputStr(prompt="Message (Mandatory): ", limit=3)
         except pyip.RetryLimitException:
-            print('[INFO] Limit of attempts exceeded.')
-            
-        if money >= 0: verbs = ["Adding", "Added"]
-        else: verbs = ["Substracting", "Substracted"]
+            print("[INFO] Limit of attempts exceeded.")
 
-        print(f'[IN PROGRESS] {verbs[0]} money ...')
-        self.cursor.execute(
-            f"""UPDATE {TABLE_NAME} SET money = money + {money} WHERE cc = {cc}""")
-        self.update_history(cc,message, money)
-        self.db.commit()
-        print(f'[INFO] {verbs[1]} money succesfully.')
-        total_money = self.query(cc, 'money')
-        print(f"[INFO] TOTAL Money : ${total_money}")
-    
-    def query(self, cc, data):
-        """ get attribute data in a row """
+        print(
+            f"""[IN PROGRESS] {"Adding" if money >= 0 else "Substracting"} money ..."""
+        )
+
+        update_dict = {
+            "$inc": {"money": money},
+        }
+
         try:
-            self.cursor.execute(f"""
-                SELECT {data} FROM {TABLE_NAME} WHERE cc = {cc}
-            """)
-            return self.cursor.fetchone()[0]
-        except Exception as ex:
-            print(f"[ERROR] Query failed. Unable to access {data} in cc: {cc}")
-            return None
-            
-    def update_history(self,cc, reason, money):
-        """ write history file with format: (date, message,  money) """
-        self.history.setdefault(cc, []) #if there's no exist create it the key
+            result = collection.update_one({"cc": cc}, update_dict)
+            self.update_history(cc, message, money)
 
-        total = self.query(cc, 'money')
-        date_format = r"%d/%m/%Y %H:%M"
-        date = datetime.now().strftime(date_format)
-        self.history[cc].append((date, reason, '$' + str(money), '$' + str(total) ))
+        except:
+            print(f"[db.add_money] failed!\n {traceback.print_exc()}")
+            return False
+
+        return result
+
+    def update_history(
+        self, cc: int, reason: str, money: float
+    ) -> Union[UpdateResult, bool]:
+        collection: Collection = self._db[COLLECTION_NAME]
+        if not (user := collection.find_one({"cc": cc})):
+            print(f"[db.update_history] failed!\n {traceback.print_exc()}")
+            return False
+
+        update_dict = {
+            "$push": {
+                "transactions": {
+                    "_id": ObjectId(),
+                    "date": datetime.now(),
+                    "amount": money,
+                    "message": reason,
+                    "total": user["money"],
+                }
+            }
+        }
+
+        try:
+            result = collection.update_one({"cc": cc}, update_dict)
+        except:
+            print(f"[db.update_history] failed!\n {traceback.print_exc()}")
+            return False
+
+        return result
+
+    def get_history(self, cc: int) -> Union[List[dict], bool]:
+        collection: Collection = self._db[COLLECTION_NAME]
+        try:
+            user = collection.find_one({"cc": cc})
+        except:
+            print(f"[db.get_history] failed!\n {traceback.print_exc()}")
+            return False
+
+        return user["transactions"]
 
 
+if __name__ == "__main__":
+    print(Database().add_money(1000233215, 100.5))

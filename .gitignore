@@ -12,6 +12,8 @@
 *.dat
 *.bak
 .vscode
+*.env
+**/vtracker
 media/
 __pycache__
 test.py

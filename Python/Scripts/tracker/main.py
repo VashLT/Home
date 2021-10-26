@@ -20,7 +20,7 @@ def usage():
 
 
 def check_date_format(date):
-    date_format = r'%d/%m/%Y'
+    date_format = r"%d/%m/%Y"
     try:
         # check given arg is a right date-format
         datetime.strptime(date, date_format)
@@ -31,7 +31,7 @@ def check_date_format(date):
 
 
 def main(sys_args):
-    """ handle args catched by sys.argv """
+    """handle args catched by sys.argv"""
     os.chdir(PATH)
     if len(sys_args) < 3:
         usage()
@@ -39,43 +39,53 @@ def main(sys_args):
     else:
         args = sys_args[1:]
         cc, task = args[:2]
-        logger = Logger(cc)
-        if task == 'log':
+        if not cc.isnumeric():
+            return print("[ERROR] Id/Cedula must be a number")
+
+        logger = Logger(int(cc))
+
+        if task == "log":
             try:
                 date = args[2]
                 input(f": {date}")
                 if not check_date_format(date):
                     print(
-                        f"[INFO] {date} doesn't match a correct date. CORRECT DATE FORMAT dd/mm/yyyy")
-                    date = None
+                        f"[INFO] {date} doesn't match a correct date. CORRECT DATE FORMAT dd/mm/yyyy"
+                    )
+                    date = ""
             except IndexError:
-                date = None
+                date = ""
             logger.history(date=date)
-        elif task == 'money':
-            print(f'[EN PROGRESO] Obteniendo dinero total ...')
-            money = logger.get_info('money')
-            name = logger.get_info('name')
-            print('[INFO] Dinero total:')
-            print(f'      [{name} - {cc}] - ${money}')
+        elif task == "money":
+            print(f"[EN PROGRESO] Obteniendo dinero total ...")
+            user = logger.get_user()
+            print("[INFO] Dinero total:")
+            print(f'      [{user["name"]} - {user["cc"]}] - ${user["money"]}')
         else:
             try:
                 money = int(args[2])
-                if task == 'add':
+                if task not in ["add", "substract"]:
+                    raise Exception(f'"{task}" doesn\'t match any valid task.')
+
+                if task == "add":
                     logger.add(money)
-                elif task == 'substract':
+                elif task == "substract":
                     logger.substract(money)
-                else:
-                    raise Exception(f"{task} doesn't match any valid task.")
+
+                user = logger.get_user()
+
+                print(f"""INFO] total money after transaction: ${user["money"]}""")
             except IndexError:
                 usage()
             except ValueError:
                 print(
-                    "[ERROR] Not valid data-type - CAUSE: Money isn't and integer value.")
+                    "[ERROR] Not valid data-type - CAUSE: Money isn't and integer value."
+                )
                 usage()
             except Exception as ex:
-                print(f'[ERROR] {ex}')
-    print('Thanks for using the script')
+                print(f"[ERROR] {ex}")
+    print("Thanks for using the script")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main(sys.argv)
