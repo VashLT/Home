@@ -1,5 +1,7 @@
 #ignore .vscode files
+*.db
 
+# common file extensions
 *.log
 *.pdb
 *.json
@@ -11,9 +13,25 @@
 *.dir
 *.dat
 *.bak
+*.mp4
+*.db
+C,C++/Book/
 .vscode
+<<<<<<< HEAD
 *.env
 **/vtracker
 media/
 __pycache__
 test.py
+=======
+
+# folders
+media/
+__pycache__
+None/
+tests
+Miramonte
+beautifiers
+data
+test.py
+>>>>>>> a8a255233f0fbd293bfbc1a4648b5b23aa0685ed

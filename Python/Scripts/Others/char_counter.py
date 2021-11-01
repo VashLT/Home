@@ -2,7 +2,8 @@ import pyperclip
 import sys
 import os
 import time
-from Python.Modules.Screen.Screen import Screen
+from Modules.Screen.Screen import Screen
+
 
 #! Python 3
 # A char counter program

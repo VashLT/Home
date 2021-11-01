@@ -1,11 +1,6 @@
-import pyinputplus as pyip
+def foo(string, *args):
+    print(*args)
+    print(string, *args)
 
 
-def check(some):
-    print(some)
-    if some != "hola":
-        raise Exception("??")
-    return True
-
-h = pyip.inputStr("Enter: ", postValidateApplyFunc=check)
-print("success!")
+foo("?")

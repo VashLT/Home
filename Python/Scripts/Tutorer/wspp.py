@@ -41,12 +41,11 @@ class WhatsAppUtils(object):
             except Exception as ex:
                 self.browser_thread.event.set()
 
-
         return wrapper
 
 
 class WhatsApp(webdriver.Chrome):
-    def __init__(self, messages = None, opts=None, keep_open=True, session_path=None):
+    def __init__(self, messages=None, opts=None, keep_open=True, session_path=None):
         """
             messages is a dict like:
                 {'number/contact_name': {'message': '...', 'image': '...'}, ...}
@@ -72,23 +71,23 @@ class WhatsApp(webdriver.Chrome):
     def reopen(self):
         super().__init__(options=self.options)
         self.get(self.url)
+        return self
 
     @WhatsAppUtils.decorate_varnames
     def digest_args(self, *args, **kwargs):
-        chrome_profile = os.path.join(os.getenv(
+        PATH = os.path.join(
+            os.getenv("HOME"), "Home", "Python", "Scripts", "Tutorer")
+        CHROME_PROFILE = os.path.join(os.getenv(
             "HOME"), "AppData", "Local", "Google", "Chrome", "User Data", "Profile 1")
-        session_path = os.path.join(
-            os.getenv("HOME"), "Documents", "Python", "Scripts", "Tutorer")
-
         for varname, value in kwargs.items():
             if varname is "opts":
                 # "--headless"]
                 [self.options.add_argument(arg) for arg in value]
             elif varname is "session_path":
-                session_path = value
+                PATH = value
             elif varname is "keep_open" and not value:
                 self.browser_thread.start()
-        self.options.add_argument(f"user-data-dir={session_path}")
+        self.options.add_argument(f"user-data-dir={PATH}")
 
     @WhatsAppUtils.handle_exit
     def send_messages(self, messages):
@@ -117,7 +116,7 @@ class WhatsApp(webdriver.Chrome):
 
     def init_use_elements(self):
         self.search_box = self.wait_for_element_by_xpath(
-            "//div[contains(@class, '_1awRl')]")
+            "//div[starts-with(@class, '_2_1')]")
 
     def wait_for_element_by_xpath(self, xpath, max_time=60, delay=1):
         try:
@@ -135,7 +134,7 @@ class WhatsApp(webdriver.Chrome):
 
     def get_contact_element(self, name_or_number, max_time=20):
         try:
-            contact_xpath = "//span[contains(@title,'%s')]/ancestor::div[starts-with(@class, '_3P' )]" % (
+            contact_xpath = "//span[contains(@title,'%s')]/ancestor::div[starts-with(@class, '_2Z' )]" % (
                 name_or_number,)
             contact = self.wait_for_element_by_xpath(
                 contact_xpath, max_time=max_time)
@@ -153,13 +152,11 @@ class WhatsApp(webdriver.Chrome):
             print(f"[INFO] Message to {identifier} couldn't be sent.")
             return
         contact.click()
-        if not hasattr(self, "mssg_box"):
-            self.mssg_box = self.find_element_by_xpath(
-                "//div[@class='Srlyw' and contains(text(),'Escribe')]/following-sibling::div")
+        self.mssg_box = self.find_element_by_xpath(
+            "//div[contains(text(), 'Escribe')]//following-sibling::div")
         self.mssg_box.send_keys(msg, Keys.ENTER)
 
     def send_image(self, identifier, data, delay=2):
-        # TODO: fix image  path to be send correctly
         try:
             path = data
             if isinstance(data, bool) and data:
@@ -174,11 +171,13 @@ class WhatsApp(webdriver.Chrome):
 
             self.wait_for_element_by_xpath(
                 "//div[@title='Adjuntar']", max_time=10).click()
+            self.find_element_by_css_selector(
+                "input[type='file']").send_keys(path)
 
-            self.find_element_by_tag_name("input").send_keys(path)
             time.sleep(delay)
             self.find_element_by_xpath(
                 "//span[@data-testid = 'send']/ancestor::div[@role = 'button']").click()
+            time.sleep(delay * 3)
             print(f"[INFO] The image was sent to {identifier} successfully.")
             if 'del_at_end' in locals():
                 os.remove(path)
@@ -197,7 +196,7 @@ class WhatsApp(webdriver.Chrome):
             os.getenv("HOME"), "Documents"), temp_name)
         return path
 
-    def keep_browser(self, timeout=20, delta_t = 0.75):
+    def keep_browser(self, timeout=20, delta_t=0.75):
         timeout = datetime.datetime.now() + datetime.timedelta(0, timeout*60)
         while not self.browser_thread.event.isSet():
             if datetime.datetime.now() > timeout:
@@ -207,5 +206,7 @@ class WhatsApp(webdriver.Chrome):
 
 
 if __name__ == "__main__":
-    data = {"Agenda 💪": {"message": "Example Message","image": "C:/Users/jose2/Pictures/Jose.jpg"}}
+    # example use
+    data = {"Agenda 💪": {"message": "Example Message",
+                         "image": "C:/Users/jose2/Pictures/Jose.jpg"}}
     WhatsApp(data)

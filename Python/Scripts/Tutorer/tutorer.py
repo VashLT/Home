@@ -1,96 +1,124 @@
 #!python3
-import datetime
-import pyperclip
-import cv2
-import sys
-import pyautogui
-import os
-import info
-import time
-import numpy as np
-import pyinputplus as pyip
-from Modules.Screen.Screen import Screen
-import playsound
-import threading
-import pause
-from wspp import WhatsApp
-# copy image to clipboard
-from io import BytesIO
-import win32clipboard
-from PIL import Image
+from imports import *
+
+# libraries and modules
+__all__ = [
+    "datetime",
+    "pyperclip",
+    "cv2",
+    "sys",
+    "pyautogui",
+    "os",
+    "info",
+    "configparser",
+    "time",
+    "WhatsApp",
+    "playsound",
+    "threading",
+    "traceback",
+    "pause",
+    "BytesIO",
+    "win32clipboard",
+    "numpy as np",
+    "pyinputplus as pyip",
+    "Modules.Screen.Screen",
+]
 
 
-TUTOR_NAME = "José Silva"
-SHIFT_TIME = 2
-TIME_DELAY = 40
-# pages
-CHAT_LINK = "https://chat.google.com/u/1/room/AAAA-GynUA0"
-SPREADSHEET_LINK = "https://docs.google.com/spreadsheets/u/1/d/1QGVpyCU8GcHngoPVwljOm3TXJsUSFCoF/edit?usp=drive_web&ouid=104294170867297406051&dls=true"
-TOOL_LINK = "https://awwapp.com/#"
-FOLDER_LINK = "https://drive.google.com/drive/u/1/folders/1tPd66fKZVvcHlzeR1yTJrLB12KFabVlW"
-
-SCREENSHOT_PATH = os.path.join(
-    os.getenv("HOME"), "Pictures", "U images", "SEA", "Evidencias 2020-2")
-SESSION_DURATION_MIN = 120
+def path_it(folders):
+    return os.path.join(os.getenv('HOME'), *folders)
 
 
-def get_day_greeting():
-    hour = datetime.datetime.now().hour
-    if hour >= 15 and hour <= 19:
-        return "Buenas tardes"
-    elif hour > 19:
-        return "Buenas noches"
-    else:
-        return "Buenos días"
+CONFIG = path_it(["Home", "Python", "Scripts", "Tutorer", "config.ini"])
+
+# pylint:disable=undefined-variable
 
 
 class Tutorer(object):
     def __init__(self, *args):
+        self.arg_parser = configparser.ConfigParser()
+        with open(CONFIG, encoding="utf-8") as config_file:
+            self.arg_parser.read_file(config_file)
         self.thread = threading.Event()
         self.time = datetime.datetime.now()
-        self.ss_beep_file = os.path.join(
-            os.getenv("HOME"), "Music", "alarm_beeps", "ss_beep.mp3")
-        self.wakeup_beep_file = os.path.join(
-            os.getenv("HOME"), "Music", "alarm_beeps", "beep_2.wav")
-        self.dt = 0.75
         self.WhatsApp = WhatsApp()
-        self.digest_args(*args)
+        self.settings()
+        self.parse_args(*args)
 
     def __del__(self):
         self.thread.set()
         self.WhatsApp.__del__()
 
-    def digest_args(self, *args):
-        Screen("Tutorer", version="0.1.0").display()
+    def settings(self):
+        # from .ini file
+
+        self.TUTOR = self.arg_parser['TUTOR']
+        self.META = self.arg_parser['META']
+        self.EXTRA = self.arg_parser['EXTRA']
+        self.STORAGE = self.arg_parser['STORAGE']
+        self.LINKS = self.arg_parser['LINKS']
+
+        self.log_path = path_it(eval(self.STORAGE['log file']))
+        self.log = Logger(
+            path_log_file=self.log_path)
+
+        self.ss_path = path_it(eval(self.STORAGE['screenshot']))
+
+        self.ss_beep_file = path_it(eval(self.EXTRA['beep start file']))
+
+        self.wakeup_beep_file = path_it(
+            eval(self.EXTRA['beep end file'])
+        )
+        self.pages = [link for link in self.LINKS.values()]
+
+    def parse_args(self, *args):
+        self.test_mode = False
+        if any([arg in args for arg in ["-t", "--test"]]):
+            self.test_mode = True
         try:
+            Screen("Tutorer", version="0.1.0").display()
             self.get_times()
-            if any(map(lambda x: x.lower().startswith("en"), args)):
+            if any([arg in args for arg in ["-o", "--out", "-e", "--exit"]]):
+                self.suffix = "Ex"
+                self.msg = "Adjunto el pantallazo de salida: "
+                time_delay = float(self.META['screenshot delay'])
+                img_path = self.get_ss_path()
+                self.take_screenshot(img_path, time_delay - time_delay / 1.25)
+                self.send_image(img_path, entry=True)
+
+            elif self.test_mode and any([arg in args for arg in ["-i", "--image"]]):
+                self.suffix = "Test"
+                self.msg = "Testing ..."
+                img_path = self.get_ss_path()
+                self.take_screenshot(img_path, 1)
+                self.send_image(img_path)
+            else:
                 self.suffix = "En"
+                self.msg = "Adjunto el pantallazo de entrada: "
                 self.setup()
                 self.wait_end_session()
-            elif any(map(lambda x: x.lower().startswith("ex"), args)):
-                self.suffix = "Ex"
-                self.take_screenshot(
-                    self.get_name(), TIME_DELAY - TIME_DELAY / 1.25)
-                self.send_image(open_browser=True)
 
         except Exception as ex:
-            print(f"[INFO] Something went wrong. {ex}")
-            self.WhatsApp.__del__()
-            return
+            self.log.exception(
+                f"TYPE: <{type(ex)}> - {ex}\n", traceback.format_exc())
+            print(
+                f"Something went wrong. Check {self.log_path} for more info.")
+        finally:
+            self.thread.set()
 
-    def wait_end_session(self):
+    def wait_end_session(self, dt=0.75):
         try:
-            duration = input("Enter the session duration (in minutes): ")
+            duration = pyip.inputNum(
+                "Enter the session duration (in minutes): ", min=0)
             if duration == "":
-                duration = SESSION_DURATION_MIN
+                duration = self.META['session duration']
             else:
                 duration = int(duration)
-            self.set_datetime(duration)
+            self.set_time_interval(duration)
             print(
                 f"[IN PROGRESS] Waiting {duration} minutes till the end of the session ...")
             while not self.thread.isSet():
-                self.thread.wait(self.dt)
+                self.thread.wait(dt)
                 if datetime.datetime.now() > self.time:
                     self.thread.set()
         except KeyboardInterrupt:
@@ -102,27 +130,43 @@ class Tutorer(object):
                 self.wakeup_beep_file, 5, 0.25)).start()
             input(f"[INFO] Press any key to take the screenshot ...")
             self.suffix = "Ex"
-            self.take_screenshot(
-                self.get_name(), TIME_DELAY - TIME_DELAY / 1.25)
-            self.send_image(open_browser=True)
+            time_delay = float(self.META['screenshot delay'])
+            img_path = self.get_ss_path()
+            self.take_screenshot(img_path, time_delay - time_delay / 1.25)
+            self.send_image(img_path, open_browser=True, entry=False)
 
         except KeyboardInterrupt:
             print(f"[INFO] An interruption was detected, exiting ...")
             sys.exit()
 
-    def get_name(self):
-        self.name = f"{self.time.strftime(r'%Y-%m-%d')} {self.suffix}.jpg"
-        return self.name
+    def get_ss_path(self):
+        name = f"{self.time.strftime(r'%Y-%m-%d')} {self.suffix}.jpg"
+        path = os.path.join(self.ss_path, name)
+        if os.path.exists(path):
+            print(f"[INFO] {name} already exists!")
+            return Tutorer.handle_repeat_file(path, suffix=self.suffix)
+        return path
 
     def setup(self):
-        Tutorer.open_pages()
+        Tutorer.open_pages(self.pages)
 
-        message = f"""{self.times["day greeting"]} muchachos, soy {TUTOR_NAME} y hoy {self.times["weekday"]} ({self.times["date"]}) estaré respondiendo a cualquier duda, pregunta e inquietud que tengan desde las {self.times["hour"][0]} {self.times["hour"][1]} hasta las {self.times["hour"][0] + SHIFT_TIME} {self.times["hour"][1]} 😀📚."""
+        name = self.TUTOR['name']
+        shift_time = int(self.META['strip duration'])
+
+        message = f"""{self.times["day greeting"]} muchachos, soy {name} y hoy {self.times["weekday"]} ({self.times["date"]}) estaré respondiendo a cualquier duda, pregunta e inquietud que tengan desde las {self.times["hour"][0]} {self.times["hour"][1]} hasta las {self.times["hour"][0] + shift_time} {self.times["hour"][1]} 😀📚."""
         print("[IN PROGRESS] Copying greeting message to clipboard")
         pyperclip.copy(message)
         print("[INFO] Message ready to be posted")
-        self.take_screenshot(self.get_name(), TIME_DELAY)
-        self.send_image()
+        img_path = self.get_ss_path()
+        self.take_screenshot(img_path, float(self.META['screenshot delay']))
+        try:
+            self.send_image(img_path)
+        except Exception as ex:
+            self.log.exception(
+                f"TYPE: <{type(ex)}> - {ex}\n", traceback.format_exc())
+            print(
+                f"Couldn't send image. Check {self.log_path} for more info.")
+            return
 
     def get_times(self):
         current_time = datetime.datetime.now()
@@ -132,55 +176,59 @@ class Tutorer(object):
         else:
             self.times["hour"] = [current_time.hour, "A.M."]
 
+        if 60 - current_time.minute <= float(self.META["round time"]):
+            self.times["hour"][0] += 1
+
         self.times["weekday"] = info.WEEKDAYS[current_time.weekday()]
         self.times["date"] = current_time.strftime(r"%d/%m/%Y")
-        self.times["day greeting"] = get_day_greeting()
+        self.times["day greeting"] = Tutorer.greeting_time()
 
-    def take_screenshot(self, ss_name, delay):
+    def take_screenshot(self, store_path, wait_time=None):
+        delay = wait_time or float(self.META['screenshot'])
         print(f"[IN PROCESS] Waiting {delay}s to take the screenshot ...")
         time.sleep(delay)
         im = pyautogui.screenshot()
         Tutorer.beep(self.ss_beep_file, times=1)
 
         image = cv2.cvtColor(np.array(im), cv2.COLOR_RGB2BGR)
-        img_path = os.path.join(SCREENSHOT_PATH, ss_name)
-        if not os.path.exists(img_path):
-            cv2.imwrite(img_path, image)
-        else:
-            print(f"[INFO] {ss_name} already exists!")
-            img_path = Tutorer.handle_repeat_file(img_path, suffix=self.suffix)
-            cv2.imwrite(img_path, image)
+        cv2.imwrite(store_path, image)
         print(
-            f"[INFO] Screenshot was taken successfully. Stored at {img_path}")
+            f"[INFO] Screenshot was taken successfully. Stored at {store_path}")
         time.sleep(1)
-        self.ss_path = img_path
 
-    def send_image(self, open_browser=False, delay=3):
+    def send_image(self, path, open_browser=False, delay=3, entry=True):
         assert hasattr(self, "ss_path")
         if open_browser:
-            self.WhatsApp.reopen()
-        self.WhatsApp.send_messages({"Juliana": {"image": self.ss_path}})
-        time.sleep(delay)
+            self.WhatsApp = self.WhatsApp.reopen()
+        to = self.TUTOR['juliana whatsapp']
+        if self.test_mode:
+            to = self.META['test whatsapp']
+
+        self.WhatsApp.send_messages(
+            {to: {"message": self.msg, "image": path}})
+        time.sleep(delay * 2)
         self.WhatsApp.close()
 
-    def set_datetime(self, interval_in_min):
-        self.time = datetime.datetime.now() + datetime.timedelta(0, interval_in_min*60)
+    def set_time_interval(self, interval):
+        """ Interval of time in minutes """
+        self.time = datetime.datetime.now() + datetime.timedelta(0, interval*60)
         return self.time
 
-    @staticmethod
+    @ staticmethod
     def handle_repeat_file(path, suffix=""):
         ans = pyip.inputYesNo(
             prompt=f"Do you want to overwrite it? (y/n)\n", yesVal="y", noVal="n")
         if ans == "n":
             rename_suffix = 1
+            old_suffix = suffix
             while os.path.exists(path):
-                path = path.replace(f"{suffix}.jpg", "") + \
-                    f"{rename_suffix} {suffix}.jpg"
-                suffix = f"{rename_suffix} {suffix}"
+                new_suffix = " ".join([str(rename_suffix), suffix])
+                path = path.replace(old_suffix, new_suffix)
+                old_suffix = new_suffix
                 rename_suffix += 1
         return path
 
-    @staticmethod
+    @ staticmethod
     def copy_image_to_clipboard(im_path):
         im = Image.open(im_path)
         with BytesIO() as output:
@@ -193,14 +241,14 @@ class Tutorer(object):
         win32clipboard.CloseClipboard()
         print("[INFO] Image ready to be sent")
 
-    @staticmethod
-    def open_pages():
-        pages = ["Chrome", FOLDER_LINK, SPREADSHEET_LINK, TOOL_LINK, CHAT_LINK]
+    @ staticmethod
+    def open_pages(pages):
+        pages.insert(0, "Chrome")
         print(f"[IN PROGRESS] Opening {len(pages)} pages ...")
         for page in pages:
             os.system(f"start /W /MAX {page}")
 
-    @staticmethod
+    @ staticmethod
     def beep(sound_file, times=1, freq=0.1):
         try:
             it = 0
@@ -212,6 +260,21 @@ class Tutorer(object):
             print(f"{sound_file} is not a valid sound file.")
             return
 
+    @ staticmethod
+    def greeting_time():
+        hour = datetime.datetime.now().hour
+        if hour >= 12 and hour <= 19:
+            return "Buenas tardes"
+        elif hour >= 19:
+            return "Buenas noches"
+        else:
+            return "Buenos días"
+
 
 if __name__ == "__main__":
     Tutorer(*sys.argv)
+    # Debug
+    # Tutorer("", "-t")
+    # path = os.path.join(os.getenv("HOME"), "Pictures", "U images",
+    #                     "SEA", "Evidencias 2020-2", "2021-03-12 Test.jpg")
+    # Tutorer.handle_repeat_file(path, suffix="Test")

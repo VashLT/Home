@@ -1,7 +1,7 @@
 import sys
 import os
 import subprocess
-from Python.Modules.Screen.Screen import Screen
+from Modules.Screen.Screen import Screen
 
 
 #!Python 3
